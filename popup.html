@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Resume Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <h2 class="font-bold mb-2">Resume Forge</h2>
+    <input type="file" id="resume" name="resume" class="w-full p-2 rounded-lg">
+    <textarea id="jobDescription" placeholder="Paste job description here..." rows="6"></textarea>
+    <button id="generate">Generate Resume & CV</button>
+    <!-- <button id="download" disabled>Download</button> -->
+    <div id="preview-container">
+      <h3>Preview</h3>
+      <textarea name="result" id="result" rows="3"></textarea>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
