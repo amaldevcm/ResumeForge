@@ -1,7 +1,16 @@
 from DB import Base, engine
+from Models.Models import *
+
+'''
+This script creates all the tables defined in the Models.py file.
+It uses SQLAlchemy's metadata to create the tables in the database specified
+in the DB.py file.
+just run this script once to set up the database schema.
+'''
+
 
 try:
     Base.metadata.create_all(bind=engine)
-    print("Database initialized successfully.")
+    print("Database tables created successfully.")
 except Exception as e:
-    print(f"Error initializing database: {str(e)}")
+    print(f"Error creating database tables: {str(e)}")

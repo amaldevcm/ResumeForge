@@ -1,7 +1,9 @@
 import os
 import pinecone
 import uuid
+from dotenv import load_dotenv
 
+load_dotenv()
 # Function to initialize Pinecone
 def init_pinecone():
     pinecone_api_key = os.getenv("PINECONE_API_KEY")

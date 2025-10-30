@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from Backend.DB import Base
+from DB import Base
     
 class User(Base):
     __tablename__ = "users"
@@ -18,7 +18,7 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, index=True)
     title = Column(String, index=True)
-    resume_id = Column(String)
+    resume_vector = Column(String)
     jd_text = Column(String)
     jd_vector = Column(String)
     created_date = Column(String)
