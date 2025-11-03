@@ -69,12 +69,14 @@ def create_embeddings(resume_text, job_text):
     return vector_store
 
 
-def grade_resume(resume_path, job_path):
-    resume = load_file(resume_path)
-    jobDesc = load_file(job_path)
-
+def grade_resume(resume, jobDesc):    # Load and preprocess files
     vector_store = create_embeddings(truncate_text(resume), truncate_text(jobDesc))
-    index = save_to_pinecone(vector_store)
+    resume_index = save_vector(vector_store['resume'])
+    job_index = save_vector(vector_store['job'])
+
+    # Save resume and job embeddings to Pinecone
+    
+
     # Convert similarity score to grade (0-100)
     grade = int(vector_store['similarity'] * 100)
     return grade, vector_store

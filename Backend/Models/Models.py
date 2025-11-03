@@ -9,6 +9,9 @@ class User(Base):
     first_name = Column(String, index=True)
     last_name = Column(String, index=True)
     created_date = Column(String)
+    updated_date = Column(String)
+    oauth_provider = Column(String, nullable=True)
+    oauth_id = Column(String, nullable=True)
     password = Column(String)
 
 
