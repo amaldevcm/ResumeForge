@@ -6,13 +6,14 @@ export function Login() {
     const navigate = useNavigate()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault()
         navigate('/resumes')
     }
     const handleGoogleLogin = () => {
-        // Google OAuth would be implemented here
-        navigate('/resumes')
+        const authUrl = import.meta.env.VITE_AUTH_URL || '/auth/login/google';
+        window.location.href = `${window.location.origin}${authUrl}`;
     }
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -110,6 +111,17 @@ export function Login() {
                         >
                             Forgot password?
                         </a>
+                    </div>
+                    <div className="mt-4 text-center">
+                        <span className="text-sm text-gray-600">
+                            Don't have an account?{' '}
+                        </span>
+                        <button
+                            onClick={() => navigate('/signup')}
+                            className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                        >
+                            Sign up
+                        </button>
                     </div>
                 </div>
             </div>
