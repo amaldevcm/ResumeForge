@@ -5,7 +5,7 @@ from groq import Groq
 from dotenv import load_dotenv
 import json
 from Services.UserService import create_user
-from Services.DocumentService import grade_resume
+from Services.DocumentService import grade_resume, getAllResumeEntries
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
@@ -47,14 +47,23 @@ def grade():
 
     if not allowed_file(resume_file.filename) or not allowed_file(job_file.filename):
         return "Invalid file format", 400
-    
-    # if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    #     os.makedirs(app.config['UPLOAD_FOLDER'])
 
     # Grade the resume against the job description
-    grade, feedback = grade_resume(resume_file.read(), job_file.read())
+    grade, feedback = grade_resume(resume_file.read(), 
+                                   job_file.read(), 
+                                   request.form)
 
     return json.dumps({"grade": grade, "feedback": feedback}), 200
+
+# API endpoint to get all resume entries
+@app.route('/api/allResumeEntries', methods=['GET'])
+def get_all_resume_entries():
+    # Logic to retrieve all resume entries from the database
+    data = getAllResumeEntries()
+    if(data is None):
+        return json.dumps({"status": "error", "message": "Could not fetch resume entries"}), 500
+    
+    return json.dumps({"status": "success", "data": data}), 200
 
 
 @app.route('/signup', methods=['POST'])

@@ -3,6 +3,8 @@ from Models.Models import User
 from datetime import datetime
 import re
 
+global current_user
+
 def create_user(user_data):
     # Validate and process user_data
 
@@ -133,3 +135,17 @@ def signup_user(user_data):
 
     new_user = create_user(user_data)
     return new_user
+
+def get_current_user():
+    current_user = {
+                    "id":"e65ead9a-7b7f-4506-91c0-e5d1c3c5054d",
+                    "email":"amalcheepramail@gmail.com",
+                    "first_name":"Amal Dev",
+                    "last_name":"C M",
+                    "created_date":None,
+                    "updated_date":None,
+                    "oauth_provider":None,
+                    "oauth_id":None,
+                    "password":None
+                    }
+    return current_user

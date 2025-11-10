@@ -1,10 +1,14 @@
+from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-import re
-import os
+from Services.UserService import get_current_user
+from Models.Models import Resume
 from Services.PineconeService import save_vector
+from DB import SessionLocal
 import pdfplumber
 import docx
+import re
+import os
 
 
 # Function to load files
@@ -69,14 +73,62 @@ def create_embeddings(resume_text, job_text):
     return vector_store
 
 
-def grade_resume(resume, jobDesc):    # Load and preprocess files
+def grade_resume(resume, jobDesc, data):    # Load and preprocess files
     vector_store = create_embeddings(truncate_text(resume), truncate_text(jobDesc))
     resume_index = save_vector(vector_store['resume'])
     job_index = save_vector(vector_store['job'])
 
     # Save resume and job embeddings to Pinecone
+    try:
+        db = SessionLocal()
+        new_resume = Resume(
+            user_id = data.get('user_id'),
+            resume_text = resume,
+            resume_vector_id = resume_index,
+            created_date = datetime.now().isoformat(),
+            updated_date = datetime.now().isoformat()
+        )
+
+        new_document = docx.Document(
+            user_id = data.get('user_id'),
+            title = data.get('title'),
+            resume_id = new_resume.id,
+            jd_text = jobDesc,
+            jd_vector_id = job_index,
+            created_date = datetime.now().isoformat(),
+            updated_date = datetime.now().isoformat()
+        )
+        db.add(new_resume)
+        db.add(new_document)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Error saving document: {str(e)}")
+    finally:
+        db.close()
     
 
     # Convert similarity score to grade (0-100)
     grade = int(vector_store['similarity'] * 100)
     return grade, vector_store
+
+def getAllResumeEntries():
+    try:
+        db = SessionLocal()
+        # Retrieve all resume entries for a user
+        uid = get_current_user()['id']
+        resumes = db.query(Resume).filter(Resume.user_id == uid).all()
+        result = []
+        for resume in resumes:
+            result.append({
+                "id": str(resume.id),
+                "resume_text": resume.resume_text,
+                "job_description": resume.jd_text,
+                "created_date": resume.created_date,
+                "updated_date": resume.updated_date
+            })
+        return result
+    except Exception as e:
+        raise Exception(f"Error retrieving resumes: {str(e)}")
+    finally:
+        db.close()
