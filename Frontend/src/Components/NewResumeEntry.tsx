@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { UploadIcon, FileTextIcon, ArrowLeftIcon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
 import axios from 'axios'
-import { resume } from 'react-dom/server'
 
 export function CreateResume() {
     const navigate = useNavigate()
@@ -11,7 +10,7 @@ export function CreateResume() {
     const [resumeFile, setResumeFile] = useState<File | null>(null)
     const [jobDescription, setJobDescription] = useState<File | null>(null)
 
-    const api = import.meta.env.SERVER_URL + '/api/grade';
+    const api = import.meta.env.VITE_SERVER_URL + '/api/grade';
 
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -28,25 +27,28 @@ export function CreateResume() {
     const handleSubmit = async (e: React.FormEvent) => {
         // Handle form submission logic here
         e.preventDefault()
-
-        if (!resumeFile || !jobDescription) return
-
-        let formData = {
-            'title': title,
-            'resume': resumeFile,
-            'jobDescription': jobDescription
-        }
+        console.log(api)
+        if (!resumeFile || !jobDescription) return;
 
         // Make API call to submit the form data
-        // Example: await api.submitResume(formData)
-        await axios.post(api, formData).then((response) => {
+        // multipart/form-data
+        const formDataObj = new FormData();
+        formDataObj.append('title', title);
+        formDataObj.append('resume', resumeFile);
+        formDataObj.append('job_description', jobDescription);
+
+        await axios.post(api, formDataObj, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }).then((response) => {
             console.log(response.data);
         }).catch((error) => {
             console.error("There was an error!", error);
         });
         // console.log(formData, title, resumeFile, jobDescription);
 
-        navigate('/resumes')
+        // navigate('/resumes')
     }
     return (
         <div className="min-h-screen w-full bg-gray-50">
@@ -90,7 +92,7 @@ export function CreateResume() {
                                 <input
                                     type="file"
                                     onChange={handleResumeUpload}
-                                    accept=".pdf,.doc,.docx"
+                                    accept=".pdf,.doc,.docx,.txt"
                                     className="hidden"
                                     id="resume-upload"
                                     required
@@ -133,7 +135,7 @@ export function CreateResume() {
                                 <input
                                     type="file"
                                     onChange={handleJDUpload}
-                                    accept=".pdf,.doc,.docx"
+                                    accept=".pdf,.doc,.docx,.txt"
                                     className="hidden"
                                     id="job-description-upload"
                                     required
