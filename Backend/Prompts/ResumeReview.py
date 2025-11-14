@@ -1,4 +1,4 @@
-from LLM import generateLLMResopnse
+from Prompts.LLM import generateLLMResopnse
 
 def get_improvement_suggestions(resume, job_desc):
     prompt = """

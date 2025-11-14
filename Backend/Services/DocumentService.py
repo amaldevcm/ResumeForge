@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from Prompts.ResumeReview import get_improvement_suggestions
 from Services.UserService import get_current_user
 from Models.Models import Resume, Document
 from Services.PineconeService import save_vector
@@ -77,7 +78,8 @@ def create_embeddings(resume_text, job_text):
     }
     return vector_store
 
-def grade_resume(resume, jobDesc, title):    # Load and preprocess files
+# Function to grade resume against job description
+def grade_resume(resume, jobDesc, title):
     # Convert binary files to text
     resume = load_file(resume)
     jobDesc = load_file(jobDesc)
@@ -121,22 +123,25 @@ def grade_resume(resume, jobDesc, title):    # Load and preprocess files
 
     # Convert similarity score to grade (0-100)
     grade = int(vector_store['similarity'] * 100)
-    return grade, vector_store
+    feedback = get_improvement_suggestions(resume, jobDesc)
+    return grade, feedback
 
 def getAllResumeEntries():
     try:
         db = SessionLocal()
         # Retrieve all resume entries for a user
         uid = get_current_user()['id']
-        resumes = db.query(Resume).filter(Resume.user_id == uid).all()
+        documents = db.query(Document).filter(Document.user_id == uid).all()
         result = []
-        for resume in resumes:
+        for document in documents:
+            resume = db.query(Resume).filter(Resume.id == document.resume_id).first()
             result.append({
-                "id": str(resume.id),
-                "resume_text": resume.resume_text,
-                "job_description": resume.jd_text,
-                "created_date": resume.created_date,
-                "updated_date": resume.updated_date
+                "id": str(document.id),
+                "title": document.title,
+                "resume_text": resume.resume_text if resume else None,
+                "job_description": document.jd_text,
+                "created_date": document.created_date,
+                "updated_date": document.updated_date
             })
         return result
     except Exception as e:
@@ -161,3 +166,5 @@ def get_resume_by_id(resume_id):
         raise Exception(f"Error retrieving resume: {str(e)}")
     finally:
         db.close()
+
+

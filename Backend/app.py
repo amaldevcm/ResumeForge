@@ -68,9 +68,8 @@ def grade():
     return json.dumps({"grade": grade, "feedback": feedback}), 200
 
 # API endpoint to get all resume entries
-@app.route('/api/allResumeEntries', methods=['GET'])
+@app.route('/api/resumeEntries', methods=['GET'])
 def get_all_resume_entries():
-    # Logic to retrieve all resume entries from the database
     data = getAllResumeEntries()
     if(data is None):
         return json.dumps({"status": "error", "message": "Could not fetch resume entries"}), 500

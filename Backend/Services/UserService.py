@@ -105,7 +105,7 @@ def get_user_by_email(email):
 def login_user(email, password=None, oauth_provider=None, oauth_id=None):
     try:
         db = SessionLocal()
-        
+        global current_user
         # Base query to find user by email
         user = db.query(User).filter(User.email == email).first()
         
@@ -118,14 +118,12 @@ def login_user(email, password=None, oauth_provider=None, oauth_id=None):
             if getattr(user, 'oauth_provider', None) == oauth_provider and \
                getattr(user, 'oauth_id', None) == oauth_id:
                 
-                global current_user
                 current_user = user
                 return user
             raise ValueError("Invalid OAuth credentials")
         elif password:
             # Password login
             if user.password == password:
-                global current_user
                 current_user = user
                 return user
             raise ValueError("Invalid password")

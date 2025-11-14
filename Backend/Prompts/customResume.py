@@ -1,4 +1,4 @@
-from LLM import generateLLMResopnse
+from Prompts.LLM import generateLLMResopnse
 
 def generateResume(resume, jobDesc):
     prompt = """You are a professional technical recruiter and career optimization expert. Your task is to:

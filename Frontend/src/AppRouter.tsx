@@ -4,6 +4,7 @@ import { JobOpenings } from './Components/JobList'
 import { Resumes } from './Components/ResumeList'
 import { SignUp } from './Components/Signup'
 import { CreateResume } from './Components/NewResumeEntry'
+import { Feedback } from './Components/Feedback'
 
 export function AppRouter() {
     return (
@@ -14,6 +15,7 @@ export function AppRouter() {
                 <Route path="/job-openings" element={<JobOpenings />} />
                 <Route path="/resumes" element={<Resumes />} />
                 <Route path="/resumes/create" element={<CreateResume />} />
+                <Route path="/resumes/feedback" element={<Feedback />} />
             </Routes>
         </BrowserRouter>
     )

@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { FileTextIcon, PlusIcon, CalendarIcon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
-const resumes = [
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+
+let res = [
     {
         id: 1,
         name: 'Frontend Developer - TechCorp',
@@ -26,6 +29,10 @@ const resumes = [
 )
 export function Resumes() {
     const navigate = useNavigate()
+
+    const [resumes, setResumes] = useState([]);
+    const api = import.meta.env.VITE_SERVER_URL + '/api/resumeEntries';
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString)
         return date.toLocaleDateString('en-US', {
@@ -34,6 +41,18 @@ export function Resumes() {
             day: 'numeric',
         })
     }
+
+    useEffect(() => {
+        axios.get(api)
+            .then(response => {
+                console.log('Resume Entries:', response.data);
+                setResumes(response.data.data);
+            })
+            .catch(error => {
+                console.error('Error fetching resume entries:', error);
+            });
+    }, [setResumes]);
+
     return (
         <div className="min-h-screen w-full bg-gray-50">
             <Navbar />
@@ -58,7 +77,7 @@ export function Resumes() {
                 <div className="space-y-4">
                     {resumes.map((resume) => (
                         <div
-                            key={resume.id}
+                            key={resume['id']}
                             className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
                         >
                             <div className="flex items-start justify-between">
@@ -68,16 +87,16 @@ export function Resumes() {
                                     </div>
                                     <div className="flex-1">
                                         <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                                            {resume.name}
+                                            {resume['title']}
                                         </h3>
                                         <div className="flex gap-6 text-sm text-gray-600">
                                             <div className="flex items-center gap-2">
                                                 <CalendarIcon className="w-4 h-4" />
-                                                <span>Created: {formatDate(resume.createdDate)}</span>
+                                                <span>Created: {formatDate(resume['created_date'])}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <CalendarIcon className="w-4 h-4" />
-                                                <span>Updated: {formatDate(resume.updatedDate)}</span>
+                                                <span>Updated: {formatDate(resume['updated_date'])}</span>
                                             </div>
                                         </div>
                                     </div>
