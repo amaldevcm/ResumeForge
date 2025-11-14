@@ -1,5 +1,6 @@
 from flask import Flask, request
 import os
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
 from dotenv import load_dotenv
@@ -10,13 +11,14 @@ from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 # db = SQLAlchemy(app)
 load_dotenv()
 
 # Load environment variables
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['UPLOAD_FOLDER'] = 'Uploads'
 ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.docx'}
 
 # Google OAuth setup
@@ -39,6 +41,7 @@ def allowed_file(filename):
 @app.route('/api/grade', methods=['POST'])
 def grade():
     # Handle file uploads and processing
+    entry_title = request.form.get('title')
     resume_file = request.files.get('resume')
     job_file = request.files.get('job_description')
 
@@ -48,10 +51,19 @@ def grade():
     if not allowed_file(resume_file.filename) or not allowed_file(job_file.filename):
         return "Invalid file format", 400
 
+    # Ensure upload folder exists
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+
+    # Save uploaded files
+    resume_file.save(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename))
+    job_file.save(os.path.join(app.config['UPLOAD_FOLDER'], job_file.filename))
+
+    # read binary files form the request body
     # Grade the resume against the job description
-    grade, feedback = grade_resume(resume_file.read(), 
-                                   job_file.read(), 
-                                   request.form)
+    grade, feedback = grade_resume(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename), 
+                                   os.path.join(app.config['UPLOAD_FOLDER'], job_file.filename), 
+                                   entry_title)
 
     return json.dumps({"grade": grade, "feedback": feedback}), 200
 

@@ -1,8 +1,9 @@
+import uuid
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from Services.UserService import get_current_user
-from Models.Models import Resume
+from Models.Models import Resume, Document
 from Services.PineconeService import save_vector
 from DB import SessionLocal
 import pdfplumber
@@ -36,10 +37,14 @@ def truncate_text(text, max_words=512):
 
 # Create vector embeddings and store them
 def create_embeddings(resume_text, job_text):
+
+    # Sentence Transformer model
     model = SentenceTransformer('all-MiniLM-L6-v2')
+
     # Create embeddings
     resume_embedding = model.encode(resume_text, convert_to_tensor=False)
     job_embedding = model.encode(job_text, convert_to_tensor=False) 
+
     # Section-wise encoding of the resume
     # Split resume into sections by common headings (e.g., Experience, Education, Skills)
     section_pattern = re.compile(r'(?i)(experience|education|skills|projects|summary|certifications|achievements|contact)[\s:\n]+')
@@ -72,26 +77,32 @@ def create_embeddings(resume_text, job_text):
     }
     return vector_store
 
+def grade_resume(resume, jobDesc, title):    # Load and preprocess files
+    # Convert binary files to text
+    resume = load_file(resume)
+    jobDesc = load_file(jobDesc)
 
-def grade_resume(resume, jobDesc, data):    # Load and preprocess files
+    # Create embeddings
     vector_store = create_embeddings(truncate_text(resume), truncate_text(jobDesc))
-    resume_index = save_vector(vector_store['resume'])
+    resume_index = save_vector(vector_store['resume']) 
     job_index = save_vector(vector_store['job'])
 
     # Save resume and job embeddings to Pinecone
     try:
         db = SessionLocal()
         new_resume = Resume(
-            user_id = data.get('user_id'),
+            id = str(uuid.uuid4()),
+            user_id = get_current_user()['id'],
             resume_text = resume,
             resume_vector_id = resume_index,
             created_date = datetime.now().isoformat(),
             updated_date = datetime.now().isoformat()
         )
 
-        new_document = docx.Document(
-            user_id = data.get('user_id'),
-            title = data.get('title'),
+        new_document = Document(
+            id = str(uuid.uuid4()),
+            user_id = get_current_user()['id'],
+            title = title,
             resume_id = new_resume.id,
             jd_text = jobDesc,
             jd_vector_id = job_index,
@@ -130,5 +141,23 @@ def getAllResumeEntries():
         return result
     except Exception as e:
         raise Exception(f"Error retrieving resumes: {str(e)}")
+    finally:
+        db.close()
+
+def get_resume_by_id(resume_id):
+    try:
+        db = SessionLocal()
+        resume = db.query(Resume).filter(Resume.id == resume_id).first()
+        if resume is None:
+            return None
+        return {
+            "id": str(resume.id),
+            "resume_text": resume.resume_text,
+            "job_description": resume.jd_text,
+            "created_date": resume.created_date,
+            "updated_date": resume.updated_date
+        }
+    except Exception as e:
+        raise Exception(f"Error retrieving resume: {str(e)}")
     finally:
         db.close()

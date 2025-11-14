@@ -1,33 +1,27 @@
 import os
-from pinecone import Pinecone
+from pinecone import Pinecone, ServerlessSpec
 import uuid
 from dotenv import load_dotenv
 
 load_dotenv()
 # Function to initialize Pinecone
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
-pc = Pinecone(api_key=pinecone_api_key, environment='us-west1-gcp')
+pc = Pinecone(api_key=pinecone_api_key)
 
 index_name = "resume-forge"
-if not pc.has_index(index_name):
-    pc.create_index_for_model(
-        name=index_name,
-        cloud="aws",
-        region="us-east-1",
-        embed={
-            "model":"llama-text-embed-v2",
-            "field_map":{"text": "chunk_text"}
-        }
-    )
 
 # Function to save vector embedding to Pinecone
-def save_vector(embedding, index_name='resume-forge', vector_id=None, metadata=None):
-    if not isinstance(embedding, (list, tuple)):
-        raise TypeError("embedding must be a list or tuple of floats")
+def save_vector(embedding, vector_id=None, metadata=None):
     dimension = len(embedding)
 
-    if index_name not in pc.list_indexes():
-        pc.create_index(index_name, dimension=dimension)
+    existing = [idx["name"] for idx in pc.list_indexes()]
+    if index_name not in existing:
+        pc.create_index(index_name, 
+                        dimension=dimension,
+                        spec=ServerlessSpec(
+                        cloud="aws",
+                        region="us-east-1"
+                    ))
     index = pc.Index(index_name)
 
     if vector_id is None:

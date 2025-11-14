@@ -1,3 +1,5 @@
+import uuid
+from sqlalchemy import null
 from DB import SessionLocal
 from Models.Models import User
 from datetime import datetime
@@ -7,7 +9,6 @@ global current_user
 
 def create_user(user_data):
     # Validate and process user_data
-
     email = user_data.get("email")
     first_name = user_data.get("first_name")
     last_name = user_data.get("last_name")
@@ -38,6 +39,7 @@ def create_user(user_data):
         db = SessionLocal()
         createdDate = datetime.now().isoformat()
         new_user = User(
+            id = str(uuid.uuid4()),
             first_name=first_name,
             last_name=last_name,
             email=email,
@@ -64,6 +66,8 @@ def create_user(user_data):
     finally:
         db.close()
 
+    global current_user
+    current_user = new_user
     return new_user
 
 
@@ -113,16 +117,21 @@ def login_user(email, password=None, oauth_provider=None, oauth_id=None):
             # OAuth login
             if getattr(user, 'oauth_provider', None) == oauth_provider and \
                getattr(user, 'oauth_id', None) == oauth_id:
+                
+                global current_user
+                current_user = user
                 return user
             raise ValueError("Invalid OAuth credentials")
         elif password:
             # Password login
             if user.password == password:
+                global current_user
+                current_user = user
                 return user
             raise ValueError("Invalid password")
         else:
             raise ValueError("Either password or OAuth credentials must be provided")
-            
+    
     except Exception as e:
         raise Exception(f"Error during login: {str(e)}")
     finally:
@@ -142,10 +151,10 @@ def get_current_user():
                     "email":"amalcheepramail@gmail.com",
                     "first_name":"Amal Dev",
                     "last_name":"C M",
-                    "created_date":None,
-                    "updated_date":None,
-                    "oauth_provider":None,
-                    "oauth_id":None,
-                    "password":None
+                    "created_date":null,
+                    "updated_date":null,
+                    "oauth_provider":null,
+                    "oauth_id":null,
+                    "password":null
                     }
     return current_user
