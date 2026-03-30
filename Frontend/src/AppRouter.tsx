@@ -14,7 +14,7 @@ export function AppRouter() {
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/job-openings" element={<JobOpenings />} />
                 <Route path="/resumes" element={<Resumes />} />
-                <Route path="/resumes/create" element={<CreateResume />} />
+                <Route path="/resumes/create" element={<CreateResume isEdited={false} id={null} />} />
                 <Route path="/resumes/feedback" element={<Feedback />} />
             </Routes>
         </BrowserRouter>

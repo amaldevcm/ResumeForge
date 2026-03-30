@@ -6,13 +6,13 @@ from groq import Groq
 from dotenv import load_dotenv
 import json
 from Services.UserService import create_user
-from Services.DocumentService import grade_resume, getAllResumeEntries
+from Services.DocumentService import saveDocument
+from Services.DocumentService import getDocumentById, grade_resume, getAllResumes
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
-# db = SQLAlchemy(app)
 load_dotenv()
 
 # Load environment variables
@@ -70,12 +70,38 @@ def grade():
 # API endpoint to get all resume entries
 @app.route('/api/resumeEntries', methods=['GET'])
 def get_all_resume_entries():
-    data = getAllResumeEntries()
+    # get id from request parameters
+    id = request.args.get('id')
+    print('id=',id)
+    if not id:
+        data = getAllResumes()
+    else:
+        data = getDocumentById(id)
     if(data is None):
         return json.dumps({"status": "error", "message": "Could not fetch resume entries"}), 500
     
     return json.dumps({"status": "success", "data": data}), 200
 
+# Function to process resume and job description, generate embeddings, and store in vector database
+@app.route('/api/newDocument', methods=['POST'])
+def new_document():
+    entry_title = request.form.get('title')
+    resume_file = request.files.get('resume')
+
+    if not resume_file:
+        return "Missing files", 400
+
+    if not allowed_file(resume_file.filename):
+        return "Invalid file format", 400
+
+    # Ensure upload folder exists
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+
+    # Save uploaded files
+    resume_file.save(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename))
+    saveDocument(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename), entry_title)
+    return json.dumps({"status": "success", "message": "File uploaded successfully"}), 200
 
 @app.route('/signup', methods=['POST'])
 def signup():

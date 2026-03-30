@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from Prompts.ResumeReview import get_improvement_suggestions
 from Services.UserService import get_current_user
-from Models.Models import Resume, Document
+from Models.Models import Document
 from Services.PineconeService import save_vector
 from DB import SessionLocal
 import pdfplumber
@@ -84,49 +84,10 @@ def grade_resume(resume, jobDesc, title):
     resume = load_file(resume)
     jobDesc = load_file(jobDesc)
 
-    # Create embeddings
-    vector_store = create_embeddings(truncate_text(resume), truncate_text(jobDesc))
-    resume_index = save_vector(vector_store['resume']) 
-    job_index = save_vector(vector_store['job'])
+    # Grade resume
+    pass
 
-    # Save resume and job embeddings to Pinecone
-    try:
-        db = SessionLocal()
-        new_resume = Resume(
-            id = str(uuid.uuid4()),
-            user_id = get_current_user()['id'],
-            resume_text = resume,
-            resume_vector_id = resume_index,
-            created_date = datetime.now().isoformat(),
-            updated_date = datetime.now().isoformat()
-        )
-
-        new_document = Document(
-            id = str(uuid.uuid4()),
-            user_id = get_current_user()['id'],
-            title = title,
-            resume_id = new_resume.id,
-            jd_text = jobDesc,
-            jd_vector_id = job_index,
-            created_date = datetime.now().isoformat(),
-            updated_date = datetime.now().isoformat()
-        )
-        db.add(new_resume)
-        db.add(new_document)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise Exception(f"Error saving document: {str(e)}")
-    finally:
-        db.close()
-    
-
-    # Convert similarity score to grade (0-100)
-    grade = int(vector_store['similarity'] * 100)
-    feedback = get_improvement_suggestions(resume, jobDesc)
-    return grade, feedback
-
-def getAllResumeEntries():
+def getAllResumes():
     try:
         db = SessionLocal()
         # Retrieve all resume entries for a user
@@ -134,12 +95,9 @@ def getAllResumeEntries():
         documents = db.query(Document).filter(Document.user_id == uid).all()
         result = []
         for document in documents:
-            resume = db.query(Resume).filter(Resume.id == document.resume_id).first()
             result.append({
                 "id": str(document.id),
                 "title": document.title,
-                "resume_text": resume.resume_text if resume else None,
-                "job_description": document.jd_text,
                 "created_date": document.created_date,
                 "updated_date": document.updated_date
             })
@@ -149,16 +107,16 @@ def getAllResumeEntries():
     finally:
         db.close()
 
-def get_resume_by_id(resume_id):
+# Function to get document by ID
+def getDocumentById(document_id):
     try:
         db = SessionLocal()
-        resume = db.query(Resume).filter(Resume.id == resume_id).first()
+        resume = db.query(Document).filter(Document.id == document_id).first()
         if resume is None:
             return None
         return {
             "id": str(resume.id),
             "resume_text": resume.resume_text,
-            "job_description": resume.jd_text,
             "created_date": resume.created_date,
             "updated_date": resume.updated_date
         }
@@ -167,4 +125,41 @@ def get_resume_by_id(resume_id):
     finally:
         db.close()
 
+# Function to save document
+def saveDocument(resume_text, title):
+    try:
+        # Convert binary files to text
+        resume = load_file(resume_text)
+
+        # Create embeddings
+        # Sentence Transformer model
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        # Create embeddings
+        resume_embedding = model.encode(resume_text, convert_to_tensor=False)
+        resume_index = save_vector(resume_embedding)
+
+        db = SessionLocal()
+        new_document = Document(
+            id = str(uuid.uuid4()),
+            user_id = get_current_user()['id'],
+            title = title,
+            resume_text = resume_text,
+            resume_vector_id = resume_index,
+            created_date = datetime.now().isoformat(),
+            updated_date = datetime.now().isoformat()
+        )
+        db.add(new_document)
+        db.commit()
+        return {
+            "id": str(new_document.id),
+            "title": new_document.title,
+            "created_date": new_document.created_date,
+            "updated_date": new_document.updated_date
+        }
+    except Exception as e:
+        db.rollback()
+        raise Exception(f"Error saving document: {str(e)}")
+    finally:
+        db.close()
 
