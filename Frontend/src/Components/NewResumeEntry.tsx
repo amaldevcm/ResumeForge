@@ -19,7 +19,7 @@ export function CreateResume({ isEdited = false, id = null }: Prop) {
     useEffect(() => {
         if (isEdited && id) {
             // Fetch existing resume data to edit
-            axios.get(api + 'resumeEntries/?id=' + id).then((response) => {
+            axios.get(api + 'resumeEntries?id=' + id).then((response) => {
                 const data = response.data;
                 setTitle(data.title);
                 setResumeFile(data.resume);

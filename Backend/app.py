@@ -8,6 +8,7 @@ import json
 from Services.UserService import create_user
 from Services.DocumentService import saveDocument
 from Services.DocumentService import getDocumentById, grade_resume, getAllResumes
+from Services.JobService import get_job_details, get_jobs
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
@@ -37,6 +38,9 @@ app.register_blueprint(google_bp, url_prefix="/login")
 def allowed_file(filename):
     return '.' in filename and os.path.splitext(filename)[-1].lower() in ALLOWED_EXTENSIONS
 
+
+
+# API Routes
 # API endpoint to handle grading requests
 @app.route('/api/grade', methods=['POST'])
 def grade():
@@ -82,7 +86,7 @@ def get_all_resume_entries():
     
     return json.dumps({"status": "success", "data": data}), 200
 
-# Function to process resume and job description, generate embeddings, and store in vector database
+# API endpoint to handle new document uploads
 @app.route('/api/newDocument', methods=['POST'])
 def new_document():
     entry_title = request.form.get('title')
@@ -103,6 +107,7 @@ def new_document():
     saveDocument(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename), entry_title)
     return json.dumps({"status": "success", "message": "File uploaded successfully"}), 200
 
+# API endpoint for Google OAuth signup/login
 @app.route('/signup', methods=['POST'])
 def signup():
     if not google.authorized:
@@ -128,3 +133,32 @@ def signup():
         
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+
+# API endpoint to handle job search requests
+@app.route('/api/jobs', methods=['GET'])
+def jobs():
+    jobTitle = request.args.get('query')
+    location = request.args.get('location')
+    if not jobTitle or not location:
+        return "Missing query or location parameters", 400
+    
+    try:
+        job_results = get_jobs(jobTitle, location)
+        return json.dumps({"status": "success", "jobs": job_results}), 200
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+    
+
+@app.route('/api/jobDetails', methods=['GET'])
+def job_details(): 
+    url = request.args.get('url')
+    if not url:
+        return "Missing url parameter", 400
+    
+    try:
+        details = get_job_details(url)
+        if details is None:
+            return json.dumps({"status": "error", "message": "Job not found"}), 404
+        return json.dumps({"status": "success", "details": details}), 200
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500

@@ -136,7 +136,7 @@ def saveDocument(resume_text, title):
         model = SentenceTransformer('all-MiniLM-L6-v2')
 
         # Create embeddings
-        resume_embedding = model.encode(resume_text, convert_to_tensor=False)
+        resume_embedding = model.encode(resume, convert_to_tensor=False)
         resume_index = save_vector(resume_embedding)
 
         db = SessionLocal()
@@ -144,7 +144,7 @@ def saveDocument(resume_text, title):
             id = str(uuid.uuid4()),
             user_id = get_current_user()['id'],
             title = title,
-            resume_text = resume_text,
+            resume_text = resume,
             resume_vector_id = resume_index,
             created_date = datetime.now().isoformat(),
             updated_date = datetime.now().isoformat()
