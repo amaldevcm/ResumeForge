@@ -7,12 +7,14 @@ import axios from 'axios'
 interface Prop {
     isEdited?: boolean;
     id?: string | null;
+    onCancel?: () => void;
 }
 
-export function CreateResume({ isEdited = false, id = null }: Prop) {
+export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
     const navigate = useNavigate()
     const [title, setTitle] = useState('')
     const [resumeFile, setResumeFile] = useState<File | null>(null)
+    const [resumeText, setResumeText] = useState('');
 
     const api = import.meta.env.VITE_SERVER_URL + '/api/';
 
@@ -20,9 +22,9 @@ export function CreateResume({ isEdited = false, id = null }: Prop) {
         if (isEdited && id) {
             // Fetch existing resume data to edit
             axios.get(api + 'resumeEntries?id=' + id).then((response) => {
-                const data = response.data;
+                const data = response.data.data;
                 setTitle(data.title);
-                setResumeFile(data.resume);
+                setResumeText(data.resume_text);
             }).catch((error) => {
                 console.error('Error fetching resume entry:', error);
             });
@@ -31,6 +33,11 @@ export function CreateResume({ isEdited = false, id = null }: Prop) {
 
     const handleCancel = () => {
         isEdited ? setResumeFile(null) : setTitle('');
+        if (isEdited && onCancel) {
+            onCancel();
+        } else {
+            navigate('/resumes');
+        }
         navigate('/resumes');
     }
 
@@ -69,7 +76,7 @@ export function CreateResume({ isEdited = false, id = null }: Prop) {
             <Navbar />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <button
-                    onClick={() => navigate('/resumes')}
+                    onClick={handleCancel}
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition"
                 >
                     <ArrowLeftIcon className="w-5 h-5" />
@@ -102,36 +109,43 @@ export function CreateResume({ isEdited = false, id = null }: Prop) {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Upload Resume
                             </label>
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
-                                <input
-                                    type="file"
-                                    onChange={handleResumeUpload}
-                                    accept=".pdf,.doc,.docx,.txt"
-                                    className="hidden"
-                                    id="resume-upload"
-                                    required
-                                />
-                                <label
-                                    htmlFor="resume-upload"
-                                    className="cursor-pointer flex flex-col items-center"
-                                >
-                                    <UploadIcon className="w-12 h-12 text-gray-400 mb-4" />
-                                    {resumeFile ? (
-                                        <div className="text-indigo-600 font-medium">
-                                            {resumeFile.name}
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <p className="text-gray-700 font-medium mb-1">
-                                                Click to upload or drag and drop
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                PDF, DOC, or DOCX (max. 10MB)
-                                            </p>
-                                        </>
-                                    )}
-                                </label>
-                            </div>
+                            {isEdited ? (
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
+                                    <FileTextIcon className="w-6 h-6 text-gray-400" />
+                                    <span className="text-gray-700">{resumeText}</span>
+                                </div>
+                            ) : (
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
+                                    <input
+                                        type="file"
+                                        onChange={handleResumeUpload}
+                                        accept=".pdf,.doc,.docx,.txt"
+                                        className="hidden"
+                                        id="resume-upload"
+                                        required
+                                    />
+                                    <label
+                                        htmlFor="resume-upload"
+                                        className="cursor-pointer flex flex-col items-center"
+                                    >
+                                        <UploadIcon className="w-12 h-12 text-gray-400 mb-4" />
+                                        {resumeFile ? (
+                                            <div className="text-indigo-600 font-medium">
+                                                {resumeFile.name}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <p className="text-gray-700 font-medium mb-1">
+                                                    Click to upload or drag and drop
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    PDF, DOC, or DOCX (max. 10MB)
+                                                </p>
+                                            </>
+                                        )}
+                                    </label>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex gap-4 pt-4">

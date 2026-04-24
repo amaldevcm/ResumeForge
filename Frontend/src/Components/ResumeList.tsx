@@ -40,9 +40,14 @@ export function Resumes() {
         setResumeId(id);
     }
 
+    const handleCancelEdit = () => {
+        setIsEdited(false);
+        setResumeId(null);
+    }
+
     return (
         <>
-            {isEdited ? <CreateResume isEdited={isEdited} id={resumeId} /> :
+            {isEdited ? <CreateResume isEdited={isEdited} id={resumeId} onCancel={handleCancelEdit} /> :
                 <div className="min-h-screen w-full bg-gray-50">
                     <Navbar />
                     <div className="max-w-6xl mx-auto px-4 py-8">
