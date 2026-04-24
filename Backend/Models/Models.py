@@ -23,6 +23,7 @@ class Document(Base):
     id = Column(UUID, primary_key=True, index=True, unique=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(UUID, index=True)
     title = Column(String, index=True)
+    resume_url = Column(String)
     resume_text = Column(String)
     resume_vector_id = Column(String)
     created_date = Column(String)

@@ -1,7 +1,6 @@
 from flask import Flask, request
 import os
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from groq import Groq
 from dotenv import load_dotenv
 import json
