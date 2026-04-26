@@ -16,6 +16,7 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.552.0",
     "react": "^19.1.1",
+    "react-doc-viewer": "^0.1.16",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.5",
     "tailwindcss": "^4.1.16"

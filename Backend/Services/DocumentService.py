@@ -7,6 +7,7 @@ from Services.UserService import get_current_user
 from Models.Models import Document
 from Services.PineconeService import save_vector
 from DB import SessionLocal, Supabase
+import mimetypes
 import pdfplumber
 import docx
 import re
@@ -114,10 +115,13 @@ def getDocumentById(document_id):
         resume = db.query(Document).filter(Document.id == document_id).first()
         if resume is None:
             return None
+        
+        url = Supabase.storage.from_('Resumes').create_signed_url(resume.resume_url, 3600)['signedURL']  # URL valid for 1 hour
+
         return {
             "id": str(resume.id),
             "title": resume.title,
-            "resume_text": resume.resume_text,
+            "resume_url": url,
             "created_date": resume.created_date,
             "updated_date": resume.updated_date
         }
@@ -128,11 +132,23 @@ def getDocumentById(document_id):
 
 # Function to save document
 def saveDocument(resume_url, title):
+    db = SessionLocal()
+    
     try:
         # Save file to Supabase Storage
-        file_name = str(uuid.uuid4())
-        Supabase.storage.from_('Resumes').upload(file_name, resume_url.encode('utf-8'))
-        resume_url = Supabase.storage.from_('Resumes').get_public_url(file_name)
+        file_name = str(uuid.uuid4()) + os.path.splitext(resume_url)[-1].lower()
+
+        # load the file content        
+        with open(resume_url, 'rb') as f:
+            resume_content = f.read()
+        mime_type, _ = mimetypes.guess_type(resume_url)
+
+        # Upload the file to Supabase Storage
+        Supabase.storage.from_('Resumes').upload(
+                            file_name, 
+                            resume_content,
+                            {"content-type": mime_type or "application/octet-stream"}
+                        )
     except Exception as e:
         raise Exception(f"Error uploading file to Supabase: {str(e)}")
     
@@ -140,21 +156,19 @@ def saveDocument(resume_url, title):
     try:
         resume = load_file(resume_url)
 
-        # Create embeddings
-        # Sentence Transformer model
+        # Create embeddings using Sentence Transformer model
         model = SentenceTransformer('all-MiniLM-L6-v2')
 
         # Create embeddings
         resume_embedding = model.encode(resume, convert_to_tensor=False)
         resume_index = save_vector(resume_embedding)
 
-        db = SessionLocal()
         new_document = Document(
             id = str(uuid.uuid4()),
             user_id = get_current_user()['id'],
             title = title,
             resume_text = resume,
-            resume_url = resume_url,
+            resume_url = file_name,
             resume_vector_id = resume_index,
             created_date = datetime.now().isoformat(),
             updated_date = datetime.now().isoformat()

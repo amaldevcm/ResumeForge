@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { UploadIcon, FileTextIcon, ArrowLeftIcon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
 import axios from 'axios'
+import DocViewer, { PDFRenderer, MSDocRenderer, TXTRenderer } from "react-doc-viewer"
 
 interface Prop {
     isEdited?: boolean;
@@ -14,7 +15,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
     const navigate = useNavigate()
     const [title, setTitle] = useState('')
     const [resumeFile, setResumeFile] = useState<File | null>(null)
-    const [resumeText, setResumeText] = useState('');
+    const [resumeURL, setResumeURL] = useState('');
 
     const api = import.meta.env.VITE_SERVER_URL + '/api/';
 
@@ -24,7 +25,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
             axios.get(api + 'resumeEntries?id=' + id).then((response) => {
                 const data = response.data.data;
                 setTitle(data.title);
-                setResumeText(data.resume_text);
+                setResumeURL(data.resume_url);
             }).catch((error) => {
                 console.error('Error fetching resume entry:', error);
             });
@@ -88,7 +89,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
                             <FileTextIcon className="w-6 h-6 text-indigo-600" />
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900">
-                            Create New Resume
+                            {isEdited ? 'Edit Resume' : 'Create New Resume'}
                         </h1>
                     </div>
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -111,8 +112,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
                             </label>
                             {isEdited ? (
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
-                                    <FileTextIcon className="w-6 h-6 text-gray-400" />
-                                    <span className="text-gray-700">{resumeText}</span>
+                                    <DocViewer documents={[{ uri: resumeURL }]} pluginRenderers={[PDFRenderer, MSDocRenderer, TXTRenderer]} />
                                 </div>
                             ) : (
                                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
