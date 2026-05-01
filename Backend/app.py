@@ -4,8 +4,8 @@ from flask_cors import CORS
 from groq import Groq
 from dotenv import load_dotenv
 import json
-from Services.UserService import create_user
-from Services.DocumentService import saveDocument
+from Services.UserService import create_user, get_current_user
+from Services.DocumentService import getBestResumes, saveDocument
 from Services.DocumentService import getDocumentById, grade_resume, getAllResumes
 from Services.JobService import get_job_details, get_jobs
 from flask_dance.contrib.google import make_google_blueprint, google
@@ -146,7 +146,6 @@ def jobs():
         return json.dumps({"status": "success", "jobs": job_results}), 200
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)}), 500
-    
 
 @app.route('/api/jobDetails', methods=['GET'])
 def job_details(): 
@@ -159,5 +158,20 @@ def job_details():
         if details is None:
             return json.dumps({"status": "error", "message": "Job not found"}), 404
         return json.dumps({"status": "success", "details": details}), 200
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+    
+
+@app.route('/api/bestResume', methods=['GET'])
+def best_resume():
+    job_description = request.args.get('job_id')
+    if not job_description:
+        return "Missing job_description parameter", 400
+    
+    try:
+        best_resumes = getBestResumes(job_description, get_current_user()['id'])
+        if not best_resumes:
+            return json.dumps({"status": "error", "message": "No resumes found"}), 404
+        return json.dumps({"status": "success", "resumes": best_resumes}), 200
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)}), 500

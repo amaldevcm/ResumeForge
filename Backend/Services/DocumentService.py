@@ -1,4 +1,5 @@
 import uuid
+from operator import index
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -158,13 +159,14 @@ def saveDocument(resume_url, title):
 
         # Create embeddings using Sentence Transformer model
         model = SentenceTransformer('all-MiniLM-L6-v2')
+        resume_id = str(uuid.uuid4())
 
         # Create embeddings
         resume_embedding = model.encode(resume, convert_to_tensor=False)
-        resume_index = save_vector(resume_embedding)
+        resume_index = save_vector(resume_embedding, metadata={"resume_id": resume_id, "user_id": get_current_user()['id']})
 
         new_document = Document(
-            id = str(uuid.uuid4()),
+            id = resume_id,
             user_id = get_current_user()['id'],
             title = title,
             resume_text = resume,
@@ -187,3 +189,36 @@ def saveDocument(resume_url, title):
     finally:
         db.close()
 
+# Function to get best resumes for a JD
+def getBestResumes(jd_text, top_k=3):
+    resume_ids = findBestResumes(jd_text, top_k)
+    resumes = []
+    for resume_id in resume_ids:
+        resume = getDocumentById(resume_id)
+        if resume:
+            resumes.append(resume)
+    return resumes
+
+
+# Function to find best resumes for a JD using cosine similarity
+def findBestResumes(jd_text, top_k=3):
+    # embed the JD
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    user_id = get_current_user()['id']
+    jd_embedding = model.encode(jd_text).tolist()
+    
+    # query pinecone filtered by user
+    results = index.query(
+        vector=jd_embedding,
+        top_k=top_k,
+        filter={"user_id": user_id},
+        include_metadata=True
+    )
+    
+    # extract resume IDs ranked by similarity
+    resume_ids = [
+        match["metadata"]["resume_id"] 
+        for match in results["matches"]
+    ]
+    
+    return resume_ids

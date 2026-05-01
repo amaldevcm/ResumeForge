@@ -19,12 +19,12 @@ HEADERS = {
     "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
 }
 
-allJobs = []
 
-# 
+allJobs = []
 def get_jobs(role, location):
     global allJobs
     allJobs = get_jobs_jsearch(keyword=role, location=location)
+    # print(get_jobs_jsearch(keyword=role, location=location))
     return allJobs
 
 # Get job details by URL
@@ -33,6 +33,12 @@ def get_job_details(url):
     if not job:
         return None
     return fetch_job_details(job["link"])
+
+def getJobDetailsById(job_id):
+    job = allJobs.get(job_id, None)
+    if not job:
+        return None
+    return job
 
 # Fetch jobs using JSearch API
 def get_jobs_jsearch(keyword, location, page=1):
@@ -48,28 +54,28 @@ def get_jobs_jsearch(keyword, location, page=1):
         return []
     
     jobs = response.json().get("data", [])
-    
+    # print(jobs[0].get("employer_name"))
     return [{
         "id": str(uuid.uuid4()),
-        "title": job["job_title"],
-        "company": job["employer_name"],
-        "location": job["job_city"],
-        "description": parse_job_description(job["job_description"]),
-        "link": job["job_apply_link"],
-        "logo": job["employer_logo"]
+        "title": job.get("job_title"),
+        "company": job.get("employer_name") if job.get("employer_name") else None,
+        "location": job.get("job_city") or job.get("job_state") or job.get("job_country"),
+        "description": parse_job_description(job.get("job_description")),
+        "link": job.get("job_apply_link"),
+        "logo": job.get("employer_logo")
     } for job in jobs]
 
 
 # Parse job description to extract key details (skills, experience, etc.)
 SECTION_HEADERS = {
     "responsibilities": [
-        "responsibilities", "what you'll do", "your role", "duties", "what you will do"
+        "responsibilities", "what you'll do", "your role", "duties", "what you will do", "What you will work on"
     ],
     "requirements": [
         "requirements", "qualifications", "what you'll need", "skills", "who you are", "what we're looking for"
     ],
-    "company": [
-        "about us", "company", "who we are", "our story", "why us", "Working at "
+    "company": [ 
+        "about us", "who we are", "about the company", "our company", "about", "the company", "why", "Working at"
     ],
     "benefits": [
         "benefits", "perks", "what we offer", "compensation", "why join us"
@@ -77,7 +83,7 @@ SECTION_HEADERS = {
 }
 
 def parse_job_description(description):
-    result = {"summary": [], "responsibilities": [], "requirements": [], "benefits": []}
+    result = {"summary": [], "company": [], "responsibilities": [], "requirements": [], "benefits": []}
     current_section = "summary"
     
     for line in description.split("\n"):
@@ -98,17 +104,14 @@ def parse_job_description(description):
             continue
         
         # add line to current section
-        if current_section:
-            cleaned = re.sub(r'^[-•*]\s*', '', line)  # remove bullet points
-            if cleaned:
-                result[current_section].append(cleaned)
-
-        
+        cleaned = re.sub(r'^[-•*]\s*', '', line)
+        if cleaned:
+            result[current_section].append(cleaned)
+    
+    # join summary into a single string
     result["summary"] = " ".join(result["summary"])
     
     return result
-
-
 
 # Scrape LinkedIn for job postings based on role and location
 def scrape_linkedin_jobs(keyword="Full Stack Developer", location="United States", pages=3):
