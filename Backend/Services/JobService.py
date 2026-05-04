@@ -21,6 +21,7 @@ HEADERS = {
 
 
 allJobs = []
+
 def get_jobs(role, location):
     global allJobs
     allJobs = get_jobs_jsearch(keyword=role, location=location)
@@ -54,13 +55,14 @@ def get_jobs_jsearch(keyword, location, page=1):
         return []
     
     jobs = response.json().get("data", [])
-    # print(jobs[0].get("employer_name"))
+    
     return [{
         "id": str(uuid.uuid4()),
         "title": job.get("job_title"),
         "company": job.get("employer_name") if job.get("employer_name") else None,
         "location": job.get("job_city") or job.get("job_state") or job.get("job_country"),
-        "description": parse_job_description(job.get("job_description")),
+        "description": job.get("job_description"),
+        "parsed_desc": parse_job_description(job.get("job_description")),
         "link": job.get("job_apply_link"),
         "logo": job.get("employer_logo")
     } for job in jobs]
@@ -189,3 +191,12 @@ def fetch_job_details(url):
                     logo.get("src")
                 ) if logo else None
     }
+
+
+def getJobById(job_id):
+    global allJobs
+    job = [job for job in allJobs if job["id"] == job_id]
+    
+    if not job:
+        return None
+    return job[0]

@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from Prompts.ResumeReview import get_improvement_suggestions
 from Services.UserService import get_current_user
 from Models.Models import Document
-from Services.PineconeService import save_vector
+from Services.PineconeService import save_vector, findBestResumes
 from DB import SessionLocal, Supabase
 import mimetypes
 import pdfplumber
@@ -163,7 +163,7 @@ def saveDocument(resume_url, title):
 
         # Create embeddings
         resume_embedding = model.encode(resume, convert_to_tensor=False)
-        resume_index = save_vector(resume_embedding, metadata={"resume_id": resume_id, "user_id": get_current_user()['id']})
+        resume_index = save_vector(resume_embedding, metadata={"resume_id": str(resume_id), "user_id": str(get_current_user()['id'])})
 
         new_document = Document(
             id = resume_id,
@@ -199,26 +199,3 @@ def getBestResumes(jd_text, top_k=3):
             resumes.append(resume)
     return resumes
 
-
-# Function to find best resumes for a JD using cosine similarity
-def findBestResumes(jd_text, top_k=3):
-    # embed the JD
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    user_id = get_current_user()['id']
-    jd_embedding = model.encode(jd_text).tolist()
-    
-    # query pinecone filtered by user
-    results = index.query(
-        vector=jd_embedding,
-        top_k=top_k,
-        filter={"user_id": user_id},
-        include_metadata=True
-    )
-    
-    # extract resume IDs ranked by similarity
-    resume_ids = [
-        match["metadata"]["resume_id"] 
-        for match in results["matches"]
-    ]
-    
-    return resume_ids

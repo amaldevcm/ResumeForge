@@ -7,7 +7,7 @@ import json
 from Services.UserService import create_user, get_current_user
 from Services.DocumentService import getBestResumes, saveDocument
 from Services.DocumentService import getDocumentById, grade_resume, getAllResumes
-from Services.JobService import get_job_details, get_jobs
+from Services.JobService import get_job_details, get_jobs, allJobs, getJobById
 from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
@@ -164,12 +164,17 @@ def job_details():
 
 @app.route('/api/bestResume', methods=['GET'])
 def best_resume():
-    job_description = request.args.get('job_id')
-    if not job_description:
+    job_id = request.args.get('job_id')
+    job = getJobById(job_id)
+    # print(job_id, job)
+
+    if not job:
         return "Missing job_description parameter", 400
     
     try:
-        best_resumes = getBestResumes(job_description, get_current_user()['id'])
+
+        best_resumes = getBestResumes(job['description'], get_current_user()['id'])
+        # print(f"Best resumes for job_id {job_id}: {best_resumes}")
         if not best_resumes:
             return json.dumps({"status": "error", "message": "No resumes found"}), 404
         return json.dumps({"status": "success", "resumes": best_resumes}), 200

@@ -167,7 +167,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">
                             About This Role
                         </h2>
-                        <p className="text-gray-700 leading-relaxed">{job.description.summary}</p>
+                        <p className="text-gray-700 leading-relaxed">{job.parsed_desc.summary}</p>
                     </div>
                 </div>
 
@@ -178,7 +178,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                             Requirements
                         </h2>
                         <ul className="space-y-3">
-                            {job.description.requirements.map((req: string, index: number) => (
+                            {job.parsed_desc.requirements.map((req: string, index: number) => (
                                 <li key={index} className="flex items-start gap-3">
                                     <CheckCircleIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
                                     <span className="text-gray-700 text-sm leading-relaxed">
@@ -194,7 +194,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                             Responsibilities
                         </h2>
                         <ul className="space-y-3">
-                            {job.description.responsibilities.map((resp: string, index: number) => (
+                            {job.parsed_desc.responsibilities.map((resp: string, index: number) => (
                                 <li key={index} className="flex items-start gap-3">
                                     <CheckCircleIcon className="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0" />
                                     <span className="text-gray-700 text-sm leading-relaxed">
@@ -320,7 +320,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                         Benefits & Perks
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {job.description.benefits.map((benefit: string, index: number) => (
+                        {job.parsed_desc.benefits.map((benefit: string, index: number) => (
                             <div
                                 key={index}
                                 className="flex items-center gap-3 px-4 py-3 bg-indigo-50 rounded-lg"
