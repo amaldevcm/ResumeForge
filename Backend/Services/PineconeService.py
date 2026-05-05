@@ -86,52 +86,35 @@ def update_vector(vector_id, new_embedding, new_metadata=None):
 def findBestResumes(jd_text, top_k=3):
     global index_name, pc, host_name
 
-    existing = [idx.name for idx in pc.list_indexes()]
-    if index_name not in existing:
-        raise ValueError(f"Index {index_name} does not exist")
-
-    index = pc.Index(host=host_name)
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-
-    user_id = str(get_current_user()['id'])
-    jd_embedding = [float(x) for x in model.encode(jd_text).tolist()]
     try:
+        existing = [idx.name for idx in pc.list_indexes()]
+        if index_name not in existing:
+            raise ValueError(f"Index {index_name} does not exist")
+
+        index = pc.Index(host=host_name)
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        user_id = str(get_current_user()['id'])
+        jd_embedding = model.encode(jd_text, convert_to_tensor=False).tolist()
+
         results = index.query(
             vector=jd_embedding,
-            top_k=top_k,
+            top_k=int(top_k),
             filter={"user_id": user_id},
             include_metadata=True
         )
-        print("query done", results)
-    except Exception as e:
-        print(f"query error: {e}")
-
-    try:
-        resume_ids = [
-            match["metadata"]["resume_id"]
+        
+        resume_data = [
+            {
+                "resume_id": match["metadata"]["resume_id"],
+                "score": round(match["score"], 4)
+            }
             for match in results["matches"]
         ]
-        print("resume_ids", resume_ids)
+
+
     except Exception as e:
+        resume_data = []
         print(f"extraction error: {e}")
 
-    return resume_ids
-
-
-def test_pinecone():
-    index = pc.Index(host=host_name)
-    
-    # dummy vector
-    test_vector = [0.1] * 384
-    user_id = str(get_current_user()['id'])
-    
-    results = index.query(
-        vector=test_vector,
-        top_k=3,
-        filter={"user_id": user_id},
-        include_metadata=True
-    )
-    
-    print(results)
-
-test_pinecone()
+    return resume_data

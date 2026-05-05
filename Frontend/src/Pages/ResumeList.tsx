@@ -3,7 +3,8 @@ import { FileTextIcon, PlusIcon, CalendarIcon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import { CreateResume } from './NewResumeEntry'
+import { CreateResume } from '../Pages/NewResumeEntry'
+import { Spinner } from '../Components/Spinner'
 
 export function Resumes() {
     const navigate = useNavigate()
@@ -11,6 +12,7 @@ export function Resumes() {
     const [resumes, setResumes] = useState([]);
     const [isEdited, setIsEdited] = useState(false);
     const [resumeId, setResumeId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const api = import.meta.env.VITE_SERVER_URL + '/api/resumeEntries';
 
@@ -29,9 +31,11 @@ export function Resumes() {
                 setResumes(response.data.data.sort((a: any, b: any) =>
                     new Date(b.created_date).getTime() - new Date(a.created_date).getTime(),
                 ));
+                setIsLoading(false);
             })
             .catch(error => {
                 console.error('Error fetching resume entries:', error);
+                setIsLoading(false);
             });
     }, [setResumes]);
 
@@ -49,7 +53,9 @@ export function Resumes() {
 
     return (
         <>
-            {isEdited ? <CreateResume isEdited={isEdited} id={resumeId} onCancel={handleCancelEdit} /> :
+            {isLoading ? (
+                <Spinner fullPage label="Loading your resumes..." />
+            ) : isEdited ? <CreateResume isEdited={isEdited} id={resumeId} onCancel={handleCancelEdit} /> :
                 <div className="min-h-screen w-full bg-gray-50">
                     <Navbar />
                     <div className="max-w-6xl mx-auto px-4 py-8">

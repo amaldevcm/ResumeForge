@@ -173,8 +173,7 @@ def best_resume():
     
     try:
 
-        best_resumes = getBestResumes(job['description'], get_current_user()['id'])
-        # print(f"Best resumes for job_id {job_id}: {best_resumes}")
+        best_resumes = getBestResumes(jd_text=job['description'], top_k=3)
         if not best_resumes:
             return json.dumps({"status": "error", "message": "No resumes found"}), 404
         return json.dumps({"status": "success", "resumes": best_resumes}), 200

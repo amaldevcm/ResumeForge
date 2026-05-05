@@ -1,14 +1,17 @@
 import { BriefcaseIcon, MapPinIcon, DollarSignIcon, ClockIcon } from 'lucide-react';
-import { Navbar } from './Navbar';
+import { Navbar } from '../Components/Navbar';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { JobDetails } from './JobDetails';
+import { Spinner } from '../Components/Spinner';
 
 
 export function JobOpenings() {
     const [jobOpenings, setJobOpenings] = useState([]);
     const [viewJob, setViewJob] = useState(false);
     const [selectedJob, setSelectedJob] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     const api = import.meta.env.VITE_SERVER_URL + '/api/jobs';
     const jobTitle = 'Software Engineer';
     const location = 'United States';
@@ -17,6 +20,7 @@ export function JobOpenings() {
         axios.get(api + `?query=${jobTitle}&location=${location}`)
             .then(response => {
                 setJobOpenings(response.data.status == "success" ? response.data.jobs : []);
+                setIsLoading(false);
             });
     }, [api]);
 
@@ -27,7 +31,9 @@ export function JobOpenings() {
 
     return (
         <>
-            {viewJob && selectedJob ? (
+            {isLoading ? (
+                <Spinner fullPage label="Loading job openings..." />
+            ) : viewJob && selectedJob ? (
                 <JobDetails job={selectedJob} onClose={() => setViewJob(false)} />
             ) : (
                 <div className="min-h-screen w-full bg-gray-50">

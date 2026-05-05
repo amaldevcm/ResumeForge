@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { Login } from './Components/Login'
-import { JobOpenings } from './Components/JobList'
-import { Resumes } from './Components/ResumeList'
-import { SignUp } from './Components/Signup'
-import { CreateResume } from './Components/NewResumeEntry'
-import { Feedback } from './Components/Feedback'
+import { Login } from './Pages/Login'
+import { JobOpenings } from './Pages/JobList'
+import { Resumes } from './Pages/ResumeList'
+import { SignUp } from './Pages/Signup'
+import { CreateResume } from './Pages/NewResumeEntry'
+import { Feedback } from './Pages/Feedback'
 
 export function AppRouter() {
     return (

@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect } from 'react';
+import { Spinner } from '../Components/Spinner';
 
 interface JobDetailsProps {
     job: any;
@@ -48,6 +49,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
 
     const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
     const [topResumes, setTopResumes] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const navigate = useNavigate();
     const api = import.meta.env.VITE_SERVER_URL + '/api/bestResume?job_id=' + job.id;
@@ -57,13 +59,15 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
         // Fetch job details using the jobURL
         axios.get(api).then((response) => {
             if (response.data.status === "success") {
-                setTopResumes(response.data);
+                setTopResumes(response.data.resumes);
             } else {
                 setTopResumes([]);
             }
+            setIsLoading(false);
         }).catch((error) => {
             console.error('Error fetching job details:', error);
             setTopResumes([]);
+            setIsLoading(false);
         });
     }, [api]);
 
@@ -89,29 +93,6 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
         )
     }
 
-
-    //   const job = jobOpenings.find((j) => j.id === Number(id))
-    //   if (!job) {
-    //     return (
-    //       <div className="min-h-screen w-full bg-gray-50">
-    //         <Navbar />
-    //         <div className="max-w-6xl mx-auto px-4 py-16 text-center">
-    //           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-    //             Job Not Found
-    //           </h1>
-    //           <p className="text-gray-600 mb-6">
-    //             The job listing you're looking for doesn't exist.
-    //           </p>
-    //           <button
-    //             onClick={() => navigate('/job-openings')}
-    //             className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition"
-    //           >
-    //             Back to Job Openings
-    //           </button>
-    //         </div>
-    //       </div>
-    //     )
-    //   }
     return (
         <div className="min-h-screen w-full bg-gray-50">
             <Navbar />
@@ -222,7 +203,9 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                         </div>
                     </div>
 
-                    {topResumes.length === 0 ? (
+                    {isLoading ? (
+                        <Spinner fullPage label="" />
+                    ) : topResumes.length === 0 ? (
                         <div className="text-center py-8">
                             <FileTextIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                             <p className="text-gray-500 mb-4">
@@ -238,7 +221,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                     ) : (
                         <div className="space-y-3">
                             {topResumes.map((resume, index) => {
-                                const score = resume.atsScores[job.id] ?? 0
+                                const score = resume.atsScores ?? 0
                                 const colors = getScoreColor(score)
                                 const isSelected = selectedResumeId === resume.id
                                 return (

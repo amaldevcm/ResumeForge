@@ -191,11 +191,12 @@ def saveDocument(resume_url, title):
 
 # Function to get best resumes for a JD
 def getBestResumes(jd_text, top_k=3):
-    resume_ids = findBestResumes(jd_text, top_k)
+    resume_data = findBestResumes(jd_text, top_k)
     resumes = []
-    for resume_id in resume_ids:
-        resume = getDocumentById(resume_id)
-        if resume:
-            resumes.append(resume)
+    for resume in resume_data:
+        new_resume = getDocumentById(resume["resume_id"])
+        new_resume['atsScores'] = resume['score']*100
+        if new_resume:
+            resumes.append(new_resume)
     return resumes
 
