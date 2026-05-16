@@ -250,7 +250,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <h3 className="font-semibold text-gray-900 truncate pr-4">
-                                                        {resume.name}
+                                                        {resume.title}
                                                     </h3>
                                                     <div
                                                         className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${colors.bg} ${colors.text}`}

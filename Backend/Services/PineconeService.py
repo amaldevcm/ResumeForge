@@ -96,7 +96,7 @@ def findBestResumes(jd_text, top_k=3):
 
         user_id = str(get_current_user()['id'])
         jd_embedding = model.encode(jd_text, convert_to_tensor=False).tolist()
-
+        
         results = index.query(
             vector=jd_embedding,
             top_k=int(top_k),
