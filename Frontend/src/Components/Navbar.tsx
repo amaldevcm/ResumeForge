@@ -4,12 +4,24 @@ import {
     BriefcaseIcon,
     FolderIcon,
     LogOutIcon,
+    UserIcon,
 } from 'lucide-react'
+import axios from 'axios'
 
 export function Navbar() {
     const navigate = useNavigate()
     const location = useLocation()
     const isActive = (path: string) => location.pathname === path
+
+    const handleSignOut = async () => {
+        try {
+            await axios.post(import.meta.env.VITE_SERVER_URL + '/api/logout')
+        } catch (error) {
+            console.error('Logout failed:', error)
+        } finally {
+            navigate('/')
+        }
+    }
     return (
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4">
@@ -41,10 +53,17 @@ export function Navbar() {
                                 <BriefcaseIcon className="w-5 h-5" />
                                 Job Openings
                             </button>
+                            <button
+                                onClick={() => navigate('/profile')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${isActive('/profile') ? 'bg-indigo-50 text-indigo-600' : 'text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                <UserIcon className="w-5 h-5" />
+                                Profile
+                            </button>
                         </div>
                     </div>
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={handleSignOut}
                         className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition"
                     >
                         <LogOutIcon className="w-5 h-5" />

@@ -1,10 +1,13 @@
-from flask import Flask, request
+from flask import Flask, request, session
 import os
 from flask_cors import CORS
 from groq import Groq
 from dotenv import load_dotenv
 import json
-from Services.UserService import create_user, get_current_user
+from Services.UserService import (
+    create_user, get_current_user, get_user_by_id, login_user, signup_user,
+    update_user, change_password, delete_user, logout_user, user_to_dict
+)
 from Services.DocumentService import getBestResumes, saveDocument
 from Services.DocumentService import getDocumentById, grade_resume, getAllResumes
 from Services.JobService import get_job_details, get_jobs, allJobs, getJobById
@@ -12,12 +15,17 @@ from flask_dance.contrib.google import make_google_blueprint, google
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)
 load_dotenv()
+
+app.secret_key = os.getenv("FLASK_SECRET_KEY")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+CORS(app, supports_credentials=True, origins=[FRONTEND_ORIGIN])
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Load environment variables
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = 'Uploads'
 ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.docx'}
 
@@ -133,6 +141,99 @@ def signup():
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
+# API endpoint for email/password signup
+@app.route('/api/signup', methods=['POST'])
+def api_signup():
+    data = request.get_json() or {}
+    try:
+        new_user = signup_user(data)
+        session['user_id'] = str(new_user.id)
+        return json.dumps({"status": "success", "user": user_to_dict(new_user)}), 201
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 400
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
+# API endpoint for email/password login
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json() or {}
+    try:
+        user = login_user(data.get('email'), password=data.get('password'))
+        session['user_id'] = str(user.id)
+        return json.dumps({"status": "success", "user": user_to_dict(user)}), 200
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 401
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
+# API endpoint to log the current user out
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return json.dumps({"status": "success", "message": "Logged out"}), 200
+
+# API endpoint to fetch the logged-in user's profile
+@app.route('/api/currentUser', methods=['GET'])
+def current_user():
+    try:
+        user = get_current_user()
+        return json.dumps({"status": "success", "user": user}), 200
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 401
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
+# API endpoint to update the logged-in user's profile
+@app.route('/api/updateProfile', methods=['PUT'])
+def update_profile():
+    user_id = session.get('user_id')
+    if not user_id:
+        return json.dumps({"status": "error", "message": "Not authenticated"}), 401
+
+    try:
+        data = request.get_json() or {}
+        allowed = {k: v for k, v in data.items() if k in ('first_name', 'last_name', 'email')}
+        updated = update_user(user_id, allowed)
+        return json.dumps({"status": "success", "user": user_to_dict(updated)}), 200
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 400
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
+# API endpoint to change the logged-in user's password
+@app.route('/api/changePassword', methods=['POST'])
+def change_password_route():
+    user_id = session.get('user_id')
+    if not user_id:
+        return json.dumps({"status": "error", "message": "Not authenticated"}), 401
+
+    try:
+        data = request.get_json() or {}
+        change_password(user_id, data.get('current_password'), data.get('new_password'))
+        return json.dumps({"status": "success", "message": "Password updated"}), 200
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 400
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
+# API endpoint to delete the logged-in user's account
+@app.route('/api/deleteAccount', methods=['DELETE'])
+def delete_account():
+    user_id = session.get('user_id')
+    if not user_id:
+        return json.dumps({"status": "error", "message": "Not authenticated"}), 401
+
+    try:
+        # NOTE: does not cascade-delete the user's Document rows / Pinecone vectors / Supabase files — follow-up item.
+        delete_user(user_id)
+        logout_user()
+        return json.dumps({"status": "success", "message": "Account deleted"}), 200
+    except ValueError as e:
+        return json.dumps({"status": "error", "message": str(e)}), 400
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)}), 500
+
 # API endpoint to handle job search requests
 @app.route('/api/jobs', methods=['GET'])
 def jobs():
@@ -147,6 +248,7 @@ def jobs():
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)}), 500
 
+# API endpoint to fetch job details based on a provided URL
 @app.route('/api/jobDetails', methods=['GET'])
 def job_details(): 
     url = request.args.get('url')
@@ -161,7 +263,7 @@ def job_details():
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)}), 500
     
-
+# API endpoint to fetch the best matching resumes for a given job description
 @app.route('/api/bestResume', methods=['GET'])
 def best_resume():
     job_id = request.args.get('job_id')

@@ -5,6 +5,7 @@ import { Resumes } from './Pages/ResumeList'
 import { SignUp } from './Pages/Signup'
 import { CreateResume } from './Pages/NewResumeEntry'
 import { Feedback } from './Pages/Feedback'
+import { Profile } from './Pages/Profile'
 
 export function AppRouter() {
     return (
@@ -16,6 +17,7 @@ export function AppRouter() {
                 <Route path="/resumes" element={<Resumes />} />
                 <Route path="/resumes/create" element={<CreateResume isEdited={false} id={null} />} />
                 <Route path="/resumes/feedback" element={<Feedback />} />
+                <Route path="/profile" element={<Profile />} />
             </Routes>
         </BrowserRouter>
     )

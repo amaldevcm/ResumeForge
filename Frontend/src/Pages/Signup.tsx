@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileTextIcon, LockIcon, MailIcon, UserIcon } from 'lucide-react'
+import axios from 'axios'
 
 export function SignUp() {
     const navigate = useNavigate()
@@ -9,13 +10,31 @@ export function SignUp() {
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
 
-    const handleSignUp = (e: React.FormEvent) => {
+    const api = import.meta.env.VITE_SERVER_URL + '/api/signup';
+
+    const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
         if (password !== confirmPassword) {
             alert('Passwords do not match')
             return
         }
-        navigate('/resumes')
+        const [firstName, ...rest] = name.trim().split(' ')
+        const lastName = rest.join(' ')
+        if (!firstName || !lastName) {
+            alert('Please enter both first and last name')
+            return
+        }
+        try {
+            await axios.post(api, {
+                first_name: firstName,
+                last_name: lastName,
+                email,
+                password,
+            })
+            navigate('/resumes')
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Sign up failed')
+        }
     }
     const handleGoogleSignUp = async () => {
         try {

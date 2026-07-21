@@ -1,15 +1,23 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileTextIcon, LockIcon, MailIcon } from 'lucide-react'
+import axios from 'axios'
 
 export function Login() {
     const navigate = useNavigate()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
-    const handleLogin = (e: React.FormEvent) => {
+    const api = import.meta.env.VITE_SERVER_URL + '/api/login';
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        navigate('/resumes')
+        try {
+            await axios.post(api, { email, password })
+            navigate('/resumes')
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Login failed')
+        }
     }
     const handleGoogleLogin = () => {
         const authUrl = import.meta.env.VITE_AUTH_URL || '/auth/login/google';
