@@ -1,4 +1,4 @@
-import { BriefcaseIcon, MapPinIcon, DollarSignIcon, ClockIcon } from 'lucide-react';
+import { MapPinIcon } from 'lucide-react';
 import { Navbar } from '../Components/Navbar';
 import axios from 'axios';
 import { useEffect, useState } from 'react';

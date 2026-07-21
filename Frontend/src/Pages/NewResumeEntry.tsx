@@ -12,6 +12,8 @@ interface Prop {
     onCancel?: () => void;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
     const navigate = useNavigate()
     const [title, setTitle] = useState('')
@@ -46,7 +48,13 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
 
     const handleResumeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setResumeFile(e.target.files[0])
+            const file = e.target.files[0]
+            if (file.size > MAX_FILE_SIZE) {
+                alert('File is too large. Maximum size is 10MB.')
+                e.target.value = ''
+                return
+            }
+            setResumeFile(file)
         }
     }
 

@@ -3,6 +3,7 @@ import os
 from flask_cors import CORS
 from groq import Groq
 from dotenv import load_dotenv
+from werkzeug.exceptions import RequestEntityTooLarge
 import json
 from Services.UserService import (
     create_user, get_current_user, get_user_by_id, get_user_by_email, login_user, signup_user,
@@ -27,6 +28,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 # Load environment variables
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['UPLOAD_FOLDER'] = 'Uploads'
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.docx'}
 
 # Google OAuth setup
@@ -44,6 +46,10 @@ app.register_blueprint(google_bp, url_prefix="/login")
 # Function to check allowed file extensions
 def allowed_file(filename):
     return '.' in filename and os.path.splitext(filename)[-1].lower() in ALLOWED_EXTENSIONS
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_too_large(e):
+    return json.dumps({"status": "error", "message": "File too large. Maximum size is 10MB."}), 413
 
 
 

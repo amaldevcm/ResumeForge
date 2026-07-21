@@ -195,8 +195,8 @@ def getBestResumes(jd_text, top_k=3):
     resumes = []
     for resume in resume_data:
         new_resume = getDocumentById(resume["resume_id"])
-        new_resume['atsScores'] = resume['score']*100
         if new_resume:
+            new_resume['atsScores'] = resume['score']*100
             resumes.append(new_resume)
     return resumes
 
