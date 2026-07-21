@@ -20,8 +20,7 @@ export function Login() {
         }
     }
     const handleGoogleLogin = () => {
-        const authUrl = import.meta.env.VITE_AUTH_URL || '/auth/login/google';
-        window.location.href = `${window.location.origin}${authUrl}`;
+        window.location.href = import.meta.env.VITE_SERVER_URL + '/login/google';
     }
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">

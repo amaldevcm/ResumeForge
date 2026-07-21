@@ -1,11 +1,11 @@
-from flask import Flask, request, session
+from flask import Flask, request, session, redirect
 import os
 from flask_cors import CORS
 from groq import Groq
 from dotenv import load_dotenv
 import json
 from Services.UserService import (
-    create_user, get_current_user, get_user_by_id, login_user, signup_user,
+    create_user, get_current_user, get_user_by_id, get_user_by_email, login_user, signup_user,
     update_user, change_password, delete_user, logout_user, user_to_dict
 )
 from Services.DocumentService import getBestResumes, saveDocument
@@ -37,7 +37,7 @@ google_bp = make_google_blueprint(
     client_id=app.config["GOOGLE_OAUTH_CLIENT_ID"],
     client_secret=app.config["GOOGLE_OAUTH_CLIENT_SECRET"],
     scope=["profile", "email"],
-    redirect_url="/login/google/authorized"
+    redirect_url="/api/auth/google/callback"
 )
 app.register_blueprint(google_bp, url_prefix="/login")
 
@@ -114,32 +114,32 @@ def new_document():
     saveDocument(os.path.join(app.config['UPLOAD_FOLDER'], resume_file.filename), entry_title)
     return json.dumps({"status": "success", "message": "File uploaded successfully"}), 200
 
-# API endpoint for Google OAuth signup/login
-@app.route('/signup', methods=['POST'])
-def signup():
+# API endpoint Google redirects to once the OAuth handshake completes (signs the user up on first visit, logs them in otherwise)
+@app.route('/api/auth/google/callback', methods=['GET'])
+def google_authorized_callback():
     if not google.authorized:
-        return {"status": "error", "message": "Not authenticated"}, 401
-    
+        return redirect(f"{FRONTEND_ORIGIN}/?error=oauth_failed")
+
     try:
-        # Get user info from Google
         google_user = google.get("/oauth2/v2/userinfo").json()
-        
-        # Create user data dictionary
-        user_data = {
-            'email': google_user['email'],
-            'name': google_user['name'],
-            'google_id': google_user['id'],
-        }
-        
-        # Create user using UserService
-        result = create_user(user_data)
-        if not result:
-            return {"status": "error", "message": "User creation failed"}, 400
-            
-        return {"status": "success", "user": result}, 200
-        
+        email = google_user.get('email')
+
+        user = get_user_by_email(email)
+        if not user:
+            user = create_user({
+                'email': email,
+                'first_name': google_user.get('given_name') or google_user.get('name') or email,
+                'last_name': google_user.get('family_name') or google_user.get('given_name') or email,
+                'oauth_provider': 'google',
+                'oauth_id': google_user.get('id'),
+            })
+
+        session['user_id'] = str(user.id)
+        return redirect(f"{FRONTEND_ORIGIN}/resumes")
+
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+        print(f"Google OAuth callback error: {e}")
+        return redirect(f"{FRONTEND_ORIGIN}/?error=oauth_failed")
 
 # API endpoint for email/password signup
 @app.route('/api/signup', methods=['POST'])

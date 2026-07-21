@@ -36,25 +36,8 @@ export function SignUp() {
             alert(error.response?.data?.message || 'Sign up failed')
         }
     }
-    const handleGoogleSignUp = async () => {
-        try {
-            const response = await fetch('/api/auth/google', {
-                method: 'GET',
-                credentials: 'include'
-            });
-            if (response.headers.get('content-type')?.includes('text/html')) {
-                const html = await response.text();
-                document.open(html);
-                document.close();
-            } else {
-                const data = await response.json();
-                if (data.authUrl) {
-                    window.location.href = data.authUrl;
-                }
-            }
-        } catch (error) {
-            console.error('Failed to initiate Google OAuth:', error);
-        }
+    const handleGoogleSignUp = () => {
+        window.location.href = import.meta.env.VITE_SERVER_URL + '/login/google';
     }
     return (
         <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
