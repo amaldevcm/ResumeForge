@@ -5,3 +5,8 @@ instance/
 Backend/Uploads/
 .vscode/
 .DS_Store
+graphify-out/
+.claude/
+Evaluation/data/testset.jsonl
+Evaluation/data/resumes/resumes.json
+Evaluation/results/runs/

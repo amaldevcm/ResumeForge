@@ -1,0 +1,17 @@
+[
+  {
+    "id": "example-resume-swe-001",
+    "title": "[EXAMPLE] Backend Software Engineer Resume",
+    "resume_text": "[EXAMPLE PLACEHOLDER TEXT - not a real resume] Experienced backend engineer with 4 years building distributed systems in Python and Go. Designed REST APIs serving 10M+ requests per day, optimized PostgreSQL queries reducing p95 latency by 40%, built CI/CD pipelines with Docker and Kubernetes. Skills: Python, Go, PostgreSQL, Redis, Docker, Kubernetes, AWS, microservices, system design."
+  },
+  {
+    "id": "example-resume-data-001",
+    "title": "[EXAMPLE] Data Engineer Resume",
+    "resume_text": "[EXAMPLE PLACEHOLDER TEXT - not a real resume] Data engineer with 3 years building ETL pipelines processing 500GB daily across Airflow and dbt. Modeled analytics-ready fact and dimension tables in Snowflake, wrote data quality tests catching schema drift, built dashboards in Looker. Skills: Python, SQL, Airflow, dbt, Snowflake, Spark, data modeling, data quality."
+  },
+  {
+    "id": "example-resume-frontend-001",
+    "title": "[EXAMPLE] Frontend Engineer Resume",
+    "resume_text": "[EXAMPLE PLACEHOLDER TEXT - not a real resume] Frontend engineer with 3 years building accessible, performant React applications. Migrated a legacy jQuery app to React/TypeScript, improved Lighthouse accessibility score from 62 to 98, built a component library used across 5 product teams. Skills: React, TypeScript, JavaScript, CSS, accessibility, Webpack, Jest, design systems."
+  }
+]
