@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileTextIcon, LockIcon, MailIcon } from 'lucide-react'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 export function Login() {
     const navigate = useNavigate()
@@ -16,7 +17,7 @@ export function Login() {
             await axios.post(api, { email, password })
             navigate('/resumes')
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Login failed')
+            toast.error(error.response?.data?.message || 'Login failed')
         }
     }
     const handleGoogleLogin = () => {
@@ -41,7 +42,7 @@ export function Login() {
                         onClick={handleGoogleLogin}
                         className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition duration-200 mb-6"
                     >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
                             <path
                                 fill="#4285F4"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -111,14 +112,6 @@ export function Login() {
                             Sign In
                         </button>
                     </form>
-                    <div className="mt-6 text-center">
-                        <a
-                            href="#"
-                            className="text-sm text-indigo-600 hover:text-indigo-700"
-                        >
-                            Forgot password?
-                        </a>
-                    </div>
                     <div className="mt-4 text-center">
                         <span className="text-sm text-gray-600">
                             Don't have an account?{' '}

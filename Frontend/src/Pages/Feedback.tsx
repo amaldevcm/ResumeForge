@@ -1,3 +1,4 @@
+import { CheckCircle2Icon, XCircleIcon, ArrowRightIcon, BarChart3Icon } from 'lucide-react'
 import { Navbar } from "../Components/Navbar"
 
 export function Feedback() {
@@ -14,9 +15,10 @@ export function Feedback() {
                     </p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-3">
-                    <div className="p-6 flex justify-center border-b lg:border-b-0 lg:border-r border-gray-200"
+                    <div className="p-6 flex flex-col items-center justify-center gap-3 border-b lg:border-b-0 lg:border-r border-gray-200 text-center"
                         id="resumeScore">
-                        <img src="data:image/png;base64, {{ chart }}" alt="Score card" />
+                        <BarChart3Icon className="w-10 h-10 text-gray-300" aria-hidden="true" />
+                        <p className="text-sm text-gray-500">Score visualization will appear here</p>
                     </div>
                     <div className="col-span-2 p-6">
                         <h3 className="text-lg font-semibold text-gray-800 mb-4 font-bold">
@@ -33,14 +35,14 @@ export function Feedback() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-green-50 p-4 rounded-lg">
                                 <h4 className="font-medium text-green-800 flex items-center gap-2 mb-3">
-                                    <i className="bi bi-check2-circle text-lg"></i>
+                                    <CheckCircle2Icon className="w-5 h-5" aria-hidden="true" />
                                     <span>Matched Keywords</span>
                                 </h4>
                                 <div className="flex flex-wrap gap-2" id="matchedSkill"></div>
                             </div>
                             <div className="bg-red-50 p-4 rounded-lg">
                                 <h4 className="font-medium text-red-800 flex items-center gap-2 mb-3">
-                                    <i className="bi bi-x-circle text-lg"></i>
+                                    <XCircleIcon className="w-5 h-5" aria-hidden="true" />
                                     <span>Missing Keywords</span>
                                 </h4>
                                 <div className="flex flex-wrap gap-2" id="missingSkill"></div>
@@ -57,7 +59,7 @@ export function Feedback() {
                 <div className="bg-blue-50 p-6 border-t border-blue-100">
                     <div className="flex items-start gap-4">
                         <div className="px-2 py-1 bg-blue-100 rounded-full">
-                            <i className="bi bi-arrow-right h-5 w-6 text-blue-700"></i>
+                            <ArrowRightIcon className="h-5 w-5 text-blue-700" aria-hidden="true" />
                         </div>
                         <div>
                             <h3 className="text-lg font-medium text-blue-800 font-bold">Next Steps</h3>

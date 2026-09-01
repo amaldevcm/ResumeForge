@@ -7,6 +7,7 @@ import {
     UserIcon,
 } from 'lucide-react'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 export function Navbar() {
     const navigate = useNavigate()
@@ -18,6 +19,7 @@ export function Navbar() {
             await axios.post(import.meta.env.VITE_SERVER_URL + '/api/logout')
         } catch (error) {
             console.error('Logout failed:', error)
+            toast.error('Logout request failed, but you have been signed out locally')
         } finally {
             navigate('/')
         }

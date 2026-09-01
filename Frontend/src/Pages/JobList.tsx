@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { JobDetails } from './JobDetails';
 import { Spinner } from '../Components/Spinner';
+import toast from 'react-hot-toast';
 
 
 export function JobOpenings() {
@@ -20,6 +21,11 @@ export function JobOpenings() {
         axios.get(api + `?query=${jobTitle}&location=${location}`)
             .then(response => {
                 setJobOpenings(response.data.status == "success" ? response.data.jobs : []);
+                setIsLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching job openings:', error);
+                toast.error('Failed to load job openings')
                 setIsLoading(false);
             });
     }, [api]);
@@ -55,11 +61,19 @@ export function JobOpenings() {
                                 {jobOpenings.map((job) => (
                                     <div
                                         key={job['id']}
-                                        className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer"
+                                        role="button"
+                                        tabIndex={0}
+                                        className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                         onClick={() => handleViewJob(job)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault()
+                                                handleViewJob(job)
+                                            }
+                                        }}
                                     >
                                         <div className="flex items-start justify-between">
-                                            <img src={job['logo']} alt="" className="w-16 h-16 object-contain mr-2" />
+                                            <img src={job['logo']} alt={`${job['company']} logo`} className="w-16 h-16 object-contain mr-2" />
                                             <div className="flex-1">
                                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                                                     {job['title']}

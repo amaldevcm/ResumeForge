@@ -21,8 +21,16 @@ load_dotenv()
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
 CORS(app, supports_credentials=True, origins=[FRONTEND_ORIGIN])
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False
+
+# When the frontend and backend are on different registrable domains (e.g. a
+# Vercel frontend + a Render/Railway backend), the session cookie is truly
+# cross-site: SameSite=Lax is never sent on cross-site AJAX requests, so login
+# would appear to succeed (the cookie is set) but never come back on the next
+# request. SameSite=None requires Secure=True (both are mandatory together,
+# and Secure requires HTTPS) - set IS_PRODUCTION=true once deployed behind HTTPS.
+IS_PRODUCTION = os.getenv("IS_PRODUCTION", "false").lower() == "true"
+app.config['SESSION_COOKIE_SAMESITE'] = 'None' if IS_PRODUCTION else 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # Load environment variables

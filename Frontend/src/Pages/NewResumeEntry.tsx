@@ -5,6 +5,7 @@ import { Navbar } from '../Components/Navbar'
 import axios from 'axios'
 import DocViewer, { PDFRenderer, MSDocRenderer, TXTRenderer } from "react-doc-viewer"
 import { Spinner } from '../Components/Spinner'
+import toast from 'react-hot-toast'
 
 interface Prop {
     isEdited?: boolean;
@@ -32,6 +33,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
                 setResumeURL(data.resume_url);
             }).catch((error) => {
                 console.error('Error fetching resume entry:', error);
+                toast.error('Failed to load resume entry')
             });
         }
     }, [isEdited, id]);
@@ -50,7 +52,7 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0]
             if (file.size > MAX_FILE_SIZE) {
-                alert('File is too large. Maximum size is 10MB.')
+                toast.error('File is too large. Maximum size is 10MB.')
                 e.target.value = ''
                 return
             }
@@ -77,9 +79,11 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
             }
         }).then((response) => {
             console.log(response.data);
+            toast.success(isEdited ? 'Resume updated successfully' : 'Resume uploaded successfully');
             navigate('/resumes');
         }).catch((error) => {
             console.error("There was an error!", error);
+            toast.error(error.response?.data?.message || 'Failed to save resume');
         }).finally(() => {
             setIsLoading(false);
         });

@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect } from 'react';
 import { Spinner } from '../Components/Spinner';
+import toast from 'react-hot-toast';
 
 interface JobDetailsProps {
     job: any;
@@ -66,6 +67,7 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
             setIsLoading(false);
         }).catch((error) => {
             console.error('Error fetching job details:', error);
+            toast.error('Failed to load matching resumes for this job')
             setTopResumes([]);
             setIsLoading(false);
         });
@@ -227,10 +229,19 @@ export function JobDetails({ job, onClose }: JobDetailsProps) {
                                 return (
                                     <div
                                         key={resume.id}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-pressed={isSelected}
                                         onClick={() =>
                                             setSelectedResumeId(isSelected ? null : resume.id)
                                         }
-                                        className={`relative rounded-xl border-2 p-5 cursor-pointer transition-all ${isSelected ? 'border-indigo-600 bg-indigo-50/40 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault()
+                                                setSelectedResumeId(isSelected ? null : resume.id)
+                                            }
+                                        }}
+                                        className={`relative rounded-xl border-2 p-5 cursor-pointer transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isSelected ? 'border-indigo-600 bg-indigo-50/40 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
                                     >
                                         {index === 0 && (
                                             <span className="absolute -top-2.5 left-4 px-2.5 py-0.5 bg-amber-500 text-white text-xs font-semibold rounded-full">

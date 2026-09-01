@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileTextIcon, LockIcon, MailIcon, UserIcon } from 'lucide-react'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 export function SignUp() {
     const navigate = useNavigate()
@@ -15,13 +16,13 @@ export function SignUp() {
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
         if (password !== confirmPassword) {
-            alert('Passwords do not match')
+            toast.error('Passwords do not match')
             return
         }
         const [firstName, ...rest] = name.trim().split(' ')
         const lastName = rest.join(' ')
         if (!firstName || !lastName) {
-            alert('Please enter both first and last name')
+            toast.error('Please enter both first and last name')
             return
         }
         try {
@@ -33,7 +34,7 @@ export function SignUp() {
             })
             navigate('/resumes')
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Sign up failed')
+            toast.error(error.response?.data?.message || 'Sign up failed')
         }
     }
     const handleGoogleSignUp = () => {
@@ -58,7 +59,7 @@ export function SignUp() {
                         onClick={handleGoogleSignUp}
                         className="w-full flex items-center justify-center gap-3 px-6 py-3 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition duration-200 mb-6"
                     >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
                             <path
                                 fill="#4285F4"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

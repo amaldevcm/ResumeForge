@@ -124,6 +124,7 @@ The app will be available at `http://localhost:5173`.
 | `OAUTH_CLIENT_ID`, `OAUTH_SECRET` | Google OAuth client credentials |
 | `FLASK_SECRET_KEY` | Signs the session cookie — required for login/signup to work |
 | `FRONTEND_ORIGIN` | Frontend URL, used for CORS and post-OAuth redirects (default `http://localhost:5173`) |
+| `IS_PRODUCTION` | Set to `true` once deployed behind HTTPS with the frontend on a different domain than the backend. Switches the session cookie to `SameSite=None; Secure` so login persists across the cross-site requests a split frontend/backend deployment makes — without this, login will appear to succeed but the session won't stick. Leave unset (`false`) for local dev. |
 | `GROQ_API_KEY` | Groq LLM API access |
 | `RAPIDAPI_KEY` | JSearch API (job search) |
 

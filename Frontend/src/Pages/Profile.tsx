@@ -4,6 +4,7 @@ import { UserIcon, MailIcon, LockIcon, Trash2Icon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
 import { Spinner } from '../Components/Spinner'
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 export function Profile() {
     const navigate = useNavigate()
@@ -30,6 +31,7 @@ export function Profile() {
             })
             .catch(error => {
                 console.error('Error fetching current user:', error)
+                toast.error(error.response?.data?.message || 'Failed to load profile')
                 setIsLoading(false)
             })
     }, []);
@@ -42,16 +44,16 @@ export function Profile() {
                 last_name: lastName,
                 email,
             })
-            alert('Profile updated successfully')
+            toast.success('Profile updated successfully')
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to update profile')
+            toast.error(error.response?.data?.message || 'Failed to update profile')
         }
     }
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault()
         if (newPassword !== confirmNewPassword) {
-            alert('New passwords do not match')
+            toast.error('New passwords do not match')
             return
         }
         try {
@@ -62,9 +64,9 @@ export function Profile() {
             setCurrentPassword('')
             setNewPassword('')
             setConfirmNewPassword('')
-            alert('Password updated successfully')
+            toast.success('Password updated successfully')
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to update password')
+            toast.error(error.response?.data?.message || 'Failed to update password')
         }
     }
 
@@ -76,7 +78,7 @@ export function Profile() {
             await axios.delete(api + 'deleteAccount')
             navigate('/')
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Failed to delete account')
+            toast.error(error.response?.data?.message || 'Failed to delete account')
         }
     }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { CreateResume } from '../Pages/NewResumeEntry'
 import { Spinner } from '../Components/Spinner'
+import toast from 'react-hot-toast'
 
 export function Resumes() {
     const navigate = useNavigate()
@@ -35,6 +36,7 @@ export function Resumes() {
             })
             .catch(error => {
                 console.error('Error fetching resume entries:', error);
+                toast.error('Failed to load your resumes')
                 setIsLoading(false);
             });
     }, [setResumes]);
