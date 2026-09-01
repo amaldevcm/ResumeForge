@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { UploadIcon, FileTextIcon, ArrowLeftIcon } from 'lucide-react'
 import { Navbar } from '../Components/Navbar'
 import axios from 'axios'
-import DocViewer, { PDFRenderer, MSDocRenderer, TXTRenderer } from "react-doc-viewer"
+import DocViewer, { PDFRenderer, MSDocRenderer, TXTRenderer } from "@cyntler/react-doc-viewer"
+import "@cyntler/react-doc-viewer/dist/index.css"
 import { Spinner } from '../Components/Spinner'
 import toast from 'react-hot-toast'
 
@@ -21,12 +22,16 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
     const [resumeFile, setResumeFile] = useState<File | null>(null)
     const [resumeURL, setResumeURL] = useState('');
     const [isloading, setIsLoading] = useState(false);
+    const [isDocLoading, setIsDocLoading] = useState(isEdited);
 
     const api = import.meta.env.VITE_SERVER_URL + '/api/';
+
+    const documents = useMemo(() => resumeURL ? [{ uri: resumeURL }] : [], [resumeURL]);
 
     useEffect(() => {
         if (isEdited && id) {
             // Fetch existing resume data to edit
+            setIsDocLoading(true);
             axios.get(api + 'resumeEntries?id=' + id).then((response) => {
                 const data = response.data.data;
                 setTitle(data.title);
@@ -34,6 +39,8 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
             }).catch((error) => {
                 console.error('Error fetching resume entry:', error);
                 toast.error('Failed to load resume entry')
+            }).finally(() => {
+                setIsDocLoading(false);
             });
         }
     }, [isEdited, id]);
@@ -132,7 +139,13 @@ export function CreateResume({ isEdited = false, id = null, onCancel }: Prop) {
                                 </label>
                                 {isEdited ? (
                                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
-                                        <DocViewer documents={[{ uri: resumeURL }]} pluginRenderers={[PDFRenderer, MSDocRenderer, TXTRenderer]} />
+                                        {isDocLoading ? (
+                                            <Spinner label="Loading resume preview..." />
+                                        ) : documents.length > 0 ? (
+                                            <DocViewer documents={documents} pluginRenderers={[PDFRenderer, MSDocRenderer, TXTRenderer]} />
+                                        ) : (
+                                            <p className="text-gray-500 text-sm">Resume preview unavailable.</p>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition">
