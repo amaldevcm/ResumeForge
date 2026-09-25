@@ -107,11 +107,16 @@ def getAllResumes():
     finally:
         db.close()
 
-# Function to get document by ID
-def getDocumentById(document_id):
+# Function to get document by ID. When user_id is given, the document must
+# also belong to that user, or None is returned (same as "not found" - this
+# avoids leaking whether a given document id exists for another user).
+def getDocumentById(document_id, user_id=None):
     try:
         db = SessionLocal()
-        resume = db.query(Document).filter(Document.id == document_id).first()
+        query = db.query(Document).filter(Document.id == document_id)
+        if user_id is not None:
+            query = query.filter(Document.user_id == user_id)
+        resume = query.first()
         if resume is None:
             return None
         
@@ -190,9 +195,12 @@ def saveDocument(resume_url, title):
 # Function to get best resumes for a JD
 def getBestResumes(jd_text, top_k=3):
     resume_data = findBestResumes(jd_text, top_k)
+    user_id = get_current_user()['id']
     resumes = []
     for resume in resume_data:
-        new_resume = getDocumentById(resume["resume_id"])
+        # Pinecone results are already filtered by user_id, but re-check
+        # ownership at the DB layer too rather than relying on that alone.
+        new_resume = getDocumentById(resume["resume_id"], user_id=user_id)
         if new_resume:
             new_resume['atsScores'] = resume['score']*100
             resumes.append(new_resume)

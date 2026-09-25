@@ -139,22 +139,22 @@ def login_user(email, password=None, oauth_provider=None, oauth_id=None):
         # Base query to find user by email
         user = db.query(User).filter(User.email == email).first()
 
-        if not user:
-            raise ValueError("User not found")
-
-        # Check authentication method
+        # Check authentication method. The error messages below are
+        # deliberately identical whether the email doesn't exist or the
+        # credentials just don't match, so a caller can't use them to
+        # enumerate which emails have accounts.
         if oauth_provider and oauth_id:
             # OAuth login
-            if getattr(user, 'oauth_provider', None) == oauth_provider and \
+            if user and getattr(user, 'oauth_provider', None) == oauth_provider and \
                getattr(user, 'oauth_id', None) == oauth_id:
 
                 return user
             raise ValueError("Invalid OAuth credentials")
         elif password:
             # Password login
-            if user.password and check_password_hash(user.password, password):
+            if user and user.password and check_password_hash(user.password, password):
                 return user
-            raise ValueError("Invalid password")
+            raise ValueError("Invalid email or password")
         else:
             raise ValueError("Either password or OAuth credentials must be provided")
 

@@ -12,12 +12,14 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
-# HEADERS = {
-#     "User-Agent": "Mozilla/5.0"
-# }
+# Headers for requests to linkedin.com - must never include the RapidAPI
+# key below, which is only meant for jsearch.p.rapidapi.com.
+LINKEDIN_HEADERS = {
+    "User-Agent": "Mozilla/5.0"
+}
 
 JSEARCH_URL = "https://jsearch.p.rapidapi.com/search"
-HEADERS = {
+JSEARCH_HEADERS = {
     "X-RapidAPI-Key": os.getenv("RAPIDAPI_KEY"),
     "X-RapidAPI-Host": "jsearch.p.rapidapi.com"
 }
@@ -564,7 +566,7 @@ def get_jobs_jsearch(keyword, location, page=1):
     #     "num_results": "10"
     # }
     
-    # response = requests.get(JSEARCH_URL, headers=HEADERS, params=params)
+    # response = requests.get(JSEARCH_URL, headers=JSEARCH_HEADERS, params=params)
     
     # if response.status_code != 200:
     #     return []
@@ -647,7 +649,7 @@ def scrape_linkedin_jobs(keyword="Full Stack Developer", location="United States
             "f_E": "2,3",           # entry + associate
             "sortBy": "DD"          # most recent
         }
-        response = requests.get(BASE_URL, headers=HEADERS, params=params)
+        response = requests.get(BASE_URL, headers=LINKEDIN_HEADERS, params=params)
 
         if response.status_code != 200:
             logger.warning("LinkedIn request failed: %s", response.status_code)
@@ -685,7 +687,7 @@ def scrape_linkedin_jobs(keyword="Full Stack Developer", location="United States
 
 # Helper function to fetch job details from job detail page
 def fetch_job_details(url):
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=LINKEDIN_HEADERS)
     soup = BeautifulSoup(response.text, "html.parser")
 
     # get all job details from the url
