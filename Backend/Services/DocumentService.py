@@ -1,9 +1,7 @@
 import uuid
-from operator import index
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from Prompts.ResumeReview import get_improvement_suggestions
 from Services.UserService import get_current_user
 from Models.Models import Document
 from Services.PineconeService import save_vector, findBestResumes

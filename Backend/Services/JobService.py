@@ -1,4 +1,5 @@
 import uuid
+import logging
 import re
 import requests
 from bs4 import BeautifulSoup
@@ -7,6 +8,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+logger = logging.getLogger(__name__)
+
 BASE_URL = "https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search"
 
 # HEADERS = {
@@ -538,7 +541,6 @@ allJobs = []
 def get_jobs(role, location):
     global allJobs
     allJobs = get_jobs_jsearch(keyword=role, location=location)
-    # print(get_jobs_jsearch(keyword=role, location=location))
     return allJobs
 
 # Get job details by URL
@@ -648,7 +650,7 @@ def scrape_linkedin_jobs(keyword="Full Stack Developer", location="United States
         response = requests.get(BASE_URL, headers=HEADERS, params=params)
 
         if response.status_code != 200:
-            print(f"Request failed: {response.status_code}")
+            logger.warning("LinkedIn request failed: %s", response.status_code)
             break
 
         soup = BeautifulSoup(response.text, "html.parser")

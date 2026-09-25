@@ -1,4 +1,5 @@
 import os
+import logging
 from pinecone import Pinecone, ServerlessSpec
 import uuid
 from dotenv import load_dotenv
@@ -6,6 +7,8 @@ from sentence_transformers import SentenceTransformer
 from Services.UserService import get_current_user
 
 load_dotenv()
+logger = logging.getLogger(__name__)
+
 # Function to initialize Pinecone
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
 pc = Pinecone(api_key=pinecone_api_key)
@@ -115,6 +118,6 @@ def findBestResumes(jd_text, top_k=3):
 
     except Exception as e:
         resume_data = []
-        print(f"extraction error: {e}")
+        logger.exception("Pinecone resume search failed: %s", e)
 
     return resume_data
