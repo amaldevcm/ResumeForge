@@ -16,14 +16,9 @@ DBNAME = os.getenv("dbname")
 # Construct the SQLAlchemy connection string
 DATABASE_URL = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}?sslmode=require"
 
-# Create engine
-engine = create_engine(DATABASE_URL, echo=True)
-
-try:
-    with engine.connect() as connection:
-        print("Connection successful!")
-except Exception as e:
-    print(f"Failed to connect: {e}")
+# Create engine (set SQL_ECHO=true to log every SQL statement while debugging)
+SQL_ECHO = os.getenv("SQL_ECHO", "false").lower() == "true"
+engine = create_engine(DATABASE_URL, echo=SQL_ECHO, pool_pre_ping=True)
 
 # Session factory
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)

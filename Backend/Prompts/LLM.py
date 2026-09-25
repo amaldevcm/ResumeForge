@@ -1,6 +1,9 @@
 import os
+import logging
 from groq import Groq
 import json
+
+logger = logging.getLogger(__name__)
 
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))           # Get groq client
@@ -17,9 +20,10 @@ def generateLLMResopnse(prompt):
             model="openai/gpt-oss-20b",  # Or your desired Groq model
         )
         generated_content = chat_completion.choices[0].message.content
-        print(generated_content)
+        logger.debug("LLM response: %s", generated_content)
         return format_ouput(generated_content)
     except Exception as e:
+        logger.exception("LLM request failed: %s", e)
         return "Error"
     
 
